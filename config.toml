@@ -32,11 +32,11 @@ chars    = ["\u2026", "\u2014"]   # … —
 strategy = "stretch"
 
 [[double_width]]
-chars    = ["\u2018", "\u201c"]   # ' "
+chars    = ["\u2018", "\u201c"]   # ‘ “
 strategy = "pad_left"
 
 [[double_width]]
-chars    = ["\u2019", "\u201d"]   # ' "
+chars    = ["\u2019", "\u201d"]   # ’ ”
 strategy = "pad_right"
 
 # Symbol font overlays applied to every subfamily.
