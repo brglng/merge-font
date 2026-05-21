@@ -1131,8 +1131,8 @@ def process_family(family_name: str, family: FontFamilySpec) -> None:
             print(f"  Error loading fonts for {subfamily_name!r}: {err}")
 
     print(
-        f"[{family_name}] "
-        f"Computing scaling from all {len(loaded)} subfamilies ..."
+        f"[{family_name}]\n"
+        f"  Computing scaling from all {len(loaded)} subfamilies ..."
     )
     scaling = compute_scaling_params(loaded, symbol_fonts)
 
