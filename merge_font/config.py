@@ -109,10 +109,11 @@ def _extract_common(data: dict) -> dict:
     return {key: data[key] for key in _COMMON_KEYS if key in data}
 
 
-def _build_family_spec(merged: dict) -> FontFamilySpec:
+def _build_family_spec(name: str, merged: dict) -> FontFamilySpec:
     """Construct a :class:`FontFamilySpec` from a fully-merged settings dict."""
-    subfamilies: dict[str, SubfamilySpec] = {
-        spec["name"]: SubfamilySpec(
+    subfamilies: list[SubfamilySpec] = [
+        SubfamilySpec(
+            name=spec["name"],
             western_font=os.path.expandvars(os.path.expanduser(spec["western_font"])),
             cjk_font=os.path.expandvars(os.path.expanduser(spec["cjk_font"])),
             cjk_scale=float(spec.get("cjk_scale", 1.0)),
@@ -120,9 +121,10 @@ def _build_family_spec(merged: dict) -> FontFamilySpec:
             western_scale_y=float(spec.get("western_scale_y", 1.0)),
         )
         for spec in merged.get("subfamilies", [])
-    }
+    ]
 
     return FontFamilySpec(
+        name=name,
         author=merged["author"],
         description=merged.get("description", ""),
         mark_as_monospace=bool(merged.get("mark_as_monospace", True)),
@@ -139,7 +141,7 @@ def _build_family_spec(merged: dict) -> FontFamilySpec:
 # ---------------------------------------------------------------------------
 
 
-def load_families(path: str) -> dict[str, FontFamilySpec]:
+def load_families(path: str) -> list[FontFamilySpec]:
     """Load font family configurations from a TOML file.
 
     Parameters
@@ -149,9 +151,9 @@ def load_families(path: str) -> dict[str, FontFamilySpec]:
 
     Returns
     -------
-    dict[str, FontFamilySpec]
-        Ordered mapping of family name → :class:`FontFamilySpec`, with
-        common defaults merged in and family-level overrides applied.
+    list[FontFamilySpec]
+        Ordered list of :class:`FontFamilySpec`, with common defaults merged
+        in and family-level overrides applied.
 
     Raises
     ------
@@ -167,7 +169,7 @@ def load_families(path: str) -> dict[str, FontFamilySpec]:
     common = _extract_common(data)
     families_raw: list[dict] = data.get("families", [])
 
-    families: dict[str, FontFamilySpec] = {}
+    families: list[FontFamilySpec] = []
     for family_data in families_raw:
         family_name: str = family_data["name"]
         # Family-level keys (excluding "name" and "subfamilies") override the
@@ -175,6 +177,6 @@ def load_families(path: str) -> dict[str, FontFamilySpec]:
         overrides = {k: v for k, v in family_data.items() if k not in ("name", "subfamilies")}
         merged: dict = {**common, **overrides}
         merged["subfamilies"] = family_data.get("subfamilies", [])
-        families[family_name] = _build_family_spec(merged)
+        families.append(_build_family_spec(family_name, merged))
 
     return families

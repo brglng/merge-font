@@ -928,7 +928,7 @@ def make_output_filename(family: str, subfamily: str) -> str:
 
 
 def compute_scaling_params(
-    loaded_subfamilies: dict[str, tuple[TTFont, TTFont]],
+    loaded_subfamilies: list[tuple[TTFont, TTFont]],
     symbol_fonts: list[TTFont] = [],
 ) -> ScalingParams:
     """Derive ``ScalingParams`` from **all** pre-loaded subfamily font pairs.
@@ -952,7 +952,7 @@ def compute_scaling_params(
     # normalisation is deferred until the global UPM is known.
     western_adv_samples: list[tuple[int, int]] = []
 
-    for w_font, c_font in loaded_subfamilies.values():
+    for w_font, c_font in loaded_subfamilies:
         upm = max(upm, w_font["head"].unitsPerEm, c_font["head"].unitsPerEm)
         western_adv_samples.append((
             get_typical_advance(w_font, ord("A")),
@@ -1104,13 +1104,15 @@ def process_font(
     western_font.save(make_output_filename(config.new_font_family, config.new_font_subfamily))
 
 
-def process_family(family_name: str, family: FontFamilySpec) -> None:
+def process_family(family: FontFamilySpec) -> None:
     """Process all subfamilies of a font family.
 
     Each font file is opened exactly once.  Scaling is computed from all
     pre-loaded subfamily fonts, then every subfamily is processed in turn
     using the same open font objects.  All fonts are closed at the end.
     """
+    family_name = family.name
+
     # Load symbol fonts once; they are read-only across all subfamily runs.
     symbol_fonts: list[TTFont] = []
     for sym_path in family.symbol_fonts:
@@ -1120,33 +1122,31 @@ def process_family(family_name: str, family: FontFamilySpec) -> None:
             print(f"  Warning: could not load symbol font {sym_path!r}: {err}")
 
     # Load western and CJK fonts for every subfamily.
-    loaded: dict[str, tuple[TTFont, TTFont]] = {}
-    for subfamily_name, spec in family.subfamilies.items():
+    loaded: list[tuple[SubfamilySpec, TTFont, TTFont]] = []
+    for spec in family.subfamilies:
         try:
-            loaded[subfamily_name] = (
+            loaded.append((
+                spec,
                 load_font(spec.western_font),
                 load_font(spec.cjk_font),
-            )
+            ))
         except FileNotFoundError as err:
-            print(f"  Error loading fonts for {subfamily_name!r}: {err}")
+            print(f"  Error loading fonts for {spec.name!r}: {err}")
 
     print(
         f"[{family_name}]\n"
         f"  Computing scaling from all {len(loaded)} subfamilies ..."
     )
-    scaling = compute_scaling_params(loaded, symbol_fonts)
+    scaling = compute_scaling_params([(w, c) for _, w, c in loaded], symbol_fonts)
 
     try:
-        for subfamily_name, spec in family.subfamilies.items():
-            if subfamily_name not in loaded:
-                continue
-            western_font, cjk_font = loaded[subfamily_name]
-            output_filename = make_output_filename(family_name, subfamily_name)
+        for spec, western_font, cjk_font in loaded:
+            output_filename = make_output_filename(family_name, spec.name)
             config = FontMergeConfig(
                 double_width=family.double_width,
                 adjust_baseline=family.adjust_baseline,
                 new_font_family=family_name,
-                new_font_subfamily=subfamily_name,
+                new_font_subfamily=spec.name,
                 author=family.author,
                 description=family.description,
                 mark_as_monospace=family.mark_as_monospace,
@@ -1164,7 +1164,7 @@ def process_family(family_name: str, family: FontFamilySpec) -> None:
             except FileNotFoundError as err:
                 print(f"  Error: {err}")
     finally:
-        for w_font, c_font in loaded.values():
+        for _, w_font, c_font in loaded:
             w_font.close()
             c_font.close()
         for s_font in symbol_fonts:
@@ -1189,5 +1189,5 @@ def main() -> None:
     args = parser.parse_args()
 
     families = load_families(args.config)
-    for family_name, family in families.items():
-        process_family(family_name, family)
+    for family in families:
+        process_family(family)

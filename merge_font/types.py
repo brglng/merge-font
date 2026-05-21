@@ -144,6 +144,8 @@ class SubfamilySpec:
 
     Attributes
     ----------
+    name : str
+        Subfamily name (e.g. ``"Regular"``, ``"Bold Italic"``).
     western_font_path : str
         Path to the western (Latin) font for this subfamily.
     cjk_font_path : str
@@ -161,6 +163,7 @@ class SubfamilySpec:
         Defaults to 1.0 (no extra vertical scaling).
     """
 
+    name: str
     western_font: str
     cjk_font: str
     cjk_scale: float = 1.0
@@ -180,9 +183,11 @@ class FontFamilySpec:
 
     Attributes
     ----------
-    new_author : str
+    name : str
+        Family name (e.g. ``"My Family NF"``).
+    author : str
         Author name written into metadata.
-    new_description : str
+    description : str
         Description written into metadata.
     mark_as_monospace : bool
         Whether to flag the output fonts as monospaced.
@@ -195,12 +200,11 @@ class FontFamilySpec:
     remove_hints : bool
         Strip all hinting data (``fpgm``, ``prep``, ``cvt ``, per-glyph
         programs, and hint-dependent metric tables) from the output fonts.
-    subfamilies : dict[str, SubfamilySpec]
-        Ordered map of subfamily name → per-subfamily settings.  Each key is
-        used as ``new_font_subfamily`` in the output metadata and to derive
-        the output filename.
+    subfamilies : list[SubfamilySpec]
+        Ordered list of per-subfamily settings.
     """
 
+    name: str
     author: str
     description: str
     mark_as_monospace: bool
@@ -208,4 +212,4 @@ class FontFamilySpec:
     double_width: list[DoubleWidthConfig]
     symbol_fonts: list[str]
     remove_hints: bool
-    subfamilies: dict[str, SubfamilySpec]
+    subfamilies: list[SubfamilySpec]
