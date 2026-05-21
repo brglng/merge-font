@@ -24,11 +24,11 @@ class DoubleWidthStrategy(Enum):
     def compute_shift(self, available_space: int) -> int:
         """Return the horizontal shift for padding methods."""
         if self is DoubleWidthStrategy.PAD_LEFT:
-            return 0
+            return available_space
         if self is DoubleWidthStrategy.CENTER:
             return available_space // 2
         if self is DoubleWidthStrategy.PAD_RIGHT:
-            return available_space
+            return 0
         return 0  # STRETCH does not use a shift
 
 
