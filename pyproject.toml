@@ -1,0 +1,15 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "merge-font"
+version = "0.1.0"
+description = "Merge western and CJK fonts with configurable scaling, symbol overlays, and metadata customization."
+requires-python = ">=3.11"
+dependencies = [
+    "fonttools>=4.0",
+]
+
+[project.scripts]
+merge-font = "merge_font:main"

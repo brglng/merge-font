@@ -9,25 +9,28 @@ Example structure
 -----------------
 ::
 
-    new_author  = "Alice"
-    new_description = ""
+    author  = "Alice"
+    description = ""
     mark_as_monospace = true
     remove_hints = true
     adjust_baseline = true
-    stretch_chars = ["…", "—"]
-    symbol_font_paths = ["~/Library/Fonts/SymbolsNerdFont-Regular.ttf"]
+    symbol_fonts = ["~/Library/Fonts/SymbolsNerdFont-Regular.ttf"]
 
-    [[pad_configs]]
-    chars     = ["'", "\u201c"]
-    alignment = "right"
+    [[double_width]]
+    chars    = ["…", "—"]
+    strategy = "stretch"
 
-    [[pad_configs]]
-    chars     = ["'", "\u201d"]
-    alignment = "left"
+    [[double_width]]
+    chars    = ["'", "\u201c"]
+    strategy = "pad_left"
+
+    [[double_width]]
+    chars    = ["'", "\u201d"]
+    strategy = "pad_right"
 
     [families."My Family".subfamilies.Regular]
-    western_font_path = "~/Library/Fonts/MyFont-Regular.ttf"
-    cjk_font_path     = "~/Library/Fonts/NotoSansCJK-Regular.ttf"
+    western_font = "~/Library/Fonts/MyFont-Regular.ttf"
+    cjk_font     = "~/Library/Fonts/NotoSansCJK-Regular.ttf"
     cjk_scale = 1.15
 """
 import os
@@ -40,20 +43,19 @@ except ImportError:
     except ImportError:
         raise ImportError("Python 3.11+ or the 'tomli' package is required.")
 
-from merge_font_types import Alignment, FontFamilySpec, PadConfig, SubfamilySpec
+from merge_font.types import DoubleWidthConfig, DoubleWidthStrategy, FontFamilySpec, SubfamilySpec
 
 
 # Keys that are considered "common" and can appear at the top level as well
 # as inside individual ``[families.<name>]`` sections.
 _COMMON_KEYS = frozenset({
-    "new_author",
-    "new_description",
+    "author",
+    "description",
     "mark_as_monospace",
     "remove_hints",
     "adjust_baseline",
-    "stretch_chars",
-    "pad_configs",
-    "symbol_font_paths",
+    "double_width",
+    "symbol_fonts",
 })
 
 
@@ -82,12 +84,12 @@ def _parse_chars(raw: list) -> list[str | int | tuple[int, int]]:
     return result
 
 
-def _parse_pad_configs(raw: list[dict]) -> list[PadConfig]:
-    """Convert a list of raw TOML pad-config dicts to :class:`PadConfig` objects."""
+def _parse_double_width(raw: list[dict]) -> list[DoubleWidthConfig]:
+    """Convert a list of raw TOML double-width dicts to :class:`DoubleWidthConfig` objects."""
     return [
-        PadConfig(
+        DoubleWidthConfig(
             chars=_parse_chars(entry["chars"]),
-            alignment=Alignment(entry["alignment"]),
+            strategy=DoubleWidthStrategy(entry["strategy"]),
         )
         for entry in raw
     ]
@@ -106,9 +108,9 @@ def _extract_common(data: dict) -> dict:
 def _build_family_spec(merged: dict) -> FontFamilySpec:
     """Construct a :class:`FontFamilySpec` from a fully-merged settings dict."""
     subfamilies: dict[str, SubfamilySpec] = {
-        name: SubfamilySpec(
-            western_font_path=os.path.expandvars(os.path.expanduser(spec["western_font_path"])),
-            cjk_font_path=os.path.expandvars(os.path.expanduser(spec["cjk_font_path"])),
+        SubfamilySpec(
+            western_font=os.path.expandvars(os.path.expanduser(spec["western_font"])),
+            cjk_font=os.path.expandvars(os.path.expanduser(spec["cjk_font"])),
             cjk_scale=float(spec.get("cjk_scale", 1.0)),
             western_scale_x=float(spec.get("western_scale_x", 1.0)),
             western_scale_y=float(spec.get("western_scale_y", 1.0)),
@@ -117,13 +119,12 @@ def _build_family_spec(merged: dict) -> FontFamilySpec:
     }
 
     return FontFamilySpec(
-        new_author=merged["new_author"],
-        new_description=merged.get("new_description", ""),
+        author=merged["author"],
+        description=merged.get("description", ""),
         mark_as_monospace=bool(merged.get("mark_as_monospace", True)),
         adjust_baseline=bool(merged.get("adjust_baseline", True)),
-        stretch_chars=_parse_chars(merged.get("stretch_chars", [])),
-        pad_configs=_parse_pad_configs(merged.get("pad_configs", [])),
-        symbol_font_paths=_expand_paths(merged.get("symbol_font_paths", [])),
+        double_width=_parse_double_width(merged.get("double_width", [])),
+        symbol_fonts=_expand_paths(merged.get("symbol_fonts", [])),
         remove_hints=bool(merged.get("remove_hints", False)),
         subfamilies=subfamilies,
     )
@@ -153,7 +154,7 @@ def load_families(path: str) -> dict[str, FontFamilySpec]:
     FileNotFoundError
         When *path* does not exist.
     KeyError
-        When a required key (e.g. ``new_author``) is missing from both the
+        When a required key (e.g. ``author``) is missing from both the
         common defaults and a specific family section.
     """
     with open(path, "rb") as fh:

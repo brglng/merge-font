@@ -13,21 +13,23 @@ from enum import Enum
 # ---------------------------------------------------------------------------
 
 
-class Alignment(Enum):
-    """Horizontal alignment when padding glyphs with whitespace."""
+class DoubleWidthStrategy(Enum):
+    """How to fit a glyph into a double-width (fullwidth) cell."""
 
-    LEFT = "left"
-    CENTER = "center"
-    RIGHT = "right"
+    STRETCH   = "stretch"
+    PAD_LEFT  = "pad_left"
+    CENTER    = "center"
+    PAD_RIGHT = "pad_right"
 
     def compute_shift(self, available_space: int) -> int:
-        """Return the horizontal shift for the given alignment and space."""
-        if self is Alignment.LEFT:
+        """Return the horizontal shift for padding methods."""
+        if self is DoubleWidthStrategy.PAD_LEFT:
             return 0
-        if self is Alignment.CENTER:
+        if self is DoubleWidthStrategy.CENTER:
             return available_space // 2
-        if self is Alignment.RIGHT:
+        if self is DoubleWidthStrategy.PAD_RIGHT:
             return available_space
+        return 0  # STRETCH does not use a shift
 
 
 # ---------------------------------------------------------------------------
@@ -36,19 +38,22 @@ class Alignment(Enum):
 
 
 @dataclass
-class PadConfig:
-    """Configuration for padding specific characters with whitespace.
+class DoubleWidthConfig:
+    """Rule for expanding a set of characters to double (fullwidth) advance width.
 
     Attributes
     ----------
     chars : list[str | int | tuple[int, int]]
-        Characters, codepoints, or (start, end) ranges to pad.
-    alignment : Alignment
-        How to align the original glyph within the padded width.
+        Characters, codepoints, or (start, end) ranges to widen.
+    strategy : DoubleWidthStrategy
+        How to fit the original glyph into the wider cell.
+        ``STRETCH`` scales the outline horizontally; the padding variants
+        (``PAD_LEFT``, ``CENTER``, ``PAD_RIGHT``) insert whitespace on one or
+        both sides without distorting the outline.
     """
 
     chars: list[str | int | tuple[int, int]]
-    alignment: Alignment
+    strategy: DoubleWidthStrategy
 
 
 @dataclass
@@ -57,19 +62,19 @@ class FontMergeConfig:
 
     Attributes
     ----------
-    stretch_chars : list[str | int | tuple[int, int]]
-        Characters to stretch horizontally to double width.
-    pad_configs : list[PadConfig]
-        Per-character padding rules.
+    double_width : list[DoubleWidthConfig]
+        Rules for expanding characters to double (fullwidth) advance width.
+        Each entry specifies a set of characters and a method (``stretch``,
+        ``left``, ``center``, or ``right``).
     adjust_baseline : bool
         Whether to auto-align CJK baseline to English baseline.
     new_font_family : str
         Font family name for the output.
     new_font_subfamily : str
         Font subfamily name for the output.
-    new_author : str
+    author : str
         Author name written into metadata.
-    new_description : str
+    description : str
         Description written into metadata.
     mark_as_monospace : bool
         Whether to flag the output font as monospaced.
@@ -85,13 +90,12 @@ class FontMergeConfig:
         Whether to strip all hinting data from the output font.
     """
 
-    stretch_chars: list[str | int | tuple[int, int]]
-    pad_configs: list[PadConfig]
+    double_width: list[DoubleWidthConfig]
     adjust_baseline: bool
     new_font_family: str
     new_font_subfamily: str
-    new_author: str
-    new_description: str
+    author: str
+    description: str
     mark_as_monospace: bool
     cjk_scale: float
     western_scale_x: float
@@ -157,8 +161,8 @@ class SubfamilySpec:
         Defaults to 1.0 (no extra vertical scaling).
     """
 
-    western_font_path: str
-    cjk_font_path: str
+    western_font: str
+    cjk_font: str
     cjk_scale: float = 1.0
     western_scale_x: float = 1.0
     western_scale_y: float = 1.0
@@ -184,11 +188,9 @@ class FontFamilySpec:
         Whether to flag the output fonts as monospaced.
     adjust_baseline : bool
         Auto-align CJK baseline to the western baseline.
-    stretch_chars : list[str | int | tuple[int, int]]
-        Characters to stretch horizontally to double width.
-    pad_configs : list[PadConfig]
-        Per-character padding rules.
-    symbol_font_paths : list[str]
+    double_width : list[DoubleWidthConfig]
+        Rules for expanding characters to double (fullwidth) advance width.
+    symbol_fonts : list[str]
         Paths to symbol fonts to overlay.
     remove_hints : bool
         Strip all hinting data (``fpgm``, ``prep``, ``cvt ``, per-glyph
@@ -199,12 +201,11 @@ class FontFamilySpec:
         the output filename.
     """
 
-    new_author: str
-    new_description: str
+    author: str
+    description: str
     mark_as_monospace: bool
     adjust_baseline: bool
-    stretch_chars: list[str | int | tuple[int, int]]
-    pad_configs: list[PadConfig]
-    symbol_font_paths: list[str]
+    double_width: list[DoubleWidthConfig]
+    symbol_fonts: list[str]
     remove_hints: bool
     subfamilies: dict[str, SubfamilySpec]

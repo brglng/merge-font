@@ -1,15 +1,11 @@
-#!/usr/bin/env python3
-"""Font merging script that combines English and CJK fonts with configurable
+"""Font merging package that combines English and CJK fonts with configurable
 scaling factors, symbol font overlays, and metadata customization.
 
 Configuration is read from a TOML file (default: ``merge_font.toml`` in the
-same directory as this script).  Pass ``--config <path>`` to use a different
-file.
+current working directory).  Pass ``--config <path>`` to use a different file.
 """
 import argparse
 import copy
-import os
-import sys
 from typing import Any
 
 from fontTools.pens.cu2quPen import Cu2QuPen
@@ -24,16 +20,12 @@ from fontTools.ttLib.tables._g_l_y_f import (
 from fontTools.ttLib.tables._l_o_c_a import table__l_o_c_a
 from fontTools.ttLib.tables.ttProgram import Program as TTProgram
 
-# Ensure siblings (merge_font_types, merge_font_config) are importable when
-# the script is invoked from a directory other than the one it lives in.
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-
-from merge_font_config import load_families  # noqa: E402
-from merge_font_types import (  # noqa: E402
-    Alignment,
+from merge_font.config import load_families
+from merge_font.types import (
+    DoubleWidthConfig,
+    DoubleWidthStrategy,
     FontFamilySpec,
     FontMergeConfig,
-    PadConfig,
     ScalingParams,
     SubfamilySpec,
 )
@@ -630,7 +622,7 @@ def pad_glyph_width(
     font: TTFont,
     codepoint: int,
     target_advance: int,
-    alignment: Alignment,
+    method: DoubleWidthStrategy,
 ) -> None:
     """Widen a glyph's advance width by adding whitespace on one or both sides."""
     resolved = resolve_glyph(font, codepoint)
@@ -640,7 +632,7 @@ def pad_glyph_width(
     adv, _ = tables.hmtx.metrics[glyph_name]
     if adv >= target_advance:
         return
-    shift_glyph(tables, glyph_name, alignment.compute_shift(target_advance - adv), target_advance)
+    shift_glyph(tables, glyph_name, method.compute_shift(target_advance - adv), target_advance)
 
 
 def stretch_glyph_width(
@@ -713,19 +705,24 @@ def adjust_cjk_glyph_widths(
     target_adv_c: int,
     cjk_upm_scale: float,
     cjk_scale: float,
+    stretch_pad_codepoints: set[int] | None = None,
 ) -> None:
     """Phase 2 — Walk the CJK cmap and centre each copied glyph within its
     target advance width (fullwidth or halfwidth).
 
     When *cjk_scale* differs from 1.0 the glyph outline is scaled uniformly by
     that factor and then centred horizontally within the target advance cell.
-    CJK codepoints must not appear in the stretch or pad configuration;
-    any such adjustments must be applied to the merged font separately.
+
+    Glyphs whose codepoints appear in *stretch_pad_codepoints* are treated
+    differently: only the Y axis is scaled by *cjk_scale* (the X axis and
+    advance width are left untouched) so that the subsequent stretch / pad
+    pass has a clean, uncentred glyph to work with.
     """
     cjk_cmap = cjk_font.getBestCmap()
     base_tables = FontTables.from_font(base_font)
     cjk_hmtx = cjk_font["hmtx"]
     processed: set[str] = set()
+    _stretch_pad = stretch_pad_codepoints or set()
 
     for codepoint, cjk_glyph_name in cjk_cmap.items():
         if codepoint not in CJK_CODEPOINT_SET:
@@ -735,6 +732,21 @@ def adjust_cjk_glyph_widths(
         if new_glyph_name not in base_tables.glyf or new_glyph_name in processed:
             continue
         processed.add(new_glyph_name)
+
+        # Glyphs that will be stretched or padded later must not be centred
+        # here — only scale the Y axis so vertical proportions are correct.
+        if codepoint in _stretch_pad:
+            if cjk_scale != 1.0:
+                GlyphTransformer.scale(base_tables.glyf[new_glyph_name], 1.0, cjk_scale)
+                adv, lsb = base_tables.hmtx.metrics[new_glyph_name]
+                base_tables.hmtx.metrics[new_glyph_name] = (adv, lsb)
+                if base_tables.vmtx and new_glyph_name in base_tables.vmtx.metrics:
+                    v_adv, tsb = base_tables.vmtx.metrics[new_glyph_name]
+                    base_tables.vmtx.metrics[new_glyph_name] = (
+                        int(round(v_adv * cjk_scale)),
+                        int(round(tsb * cjk_scale)),
+                    )
+            continue
 
         # Determine target advance width
         original_adv = cjk_hmtx.metrics[cjk_glyph_name][0]
@@ -769,17 +781,23 @@ def merge_cjk_glyphs(
     cjk_upm_scale: float,
     y_offset: int,
     cjk_scale: float = 1.0,
+    stretch_pad_codepoints: set[int] | None = None,
 ) -> None:
     """Copy CJK glyphs into the base font and adjust their advance widths.
 
     Orchestrates the two phases: ``copy_cjk_glyphs_to_base`` followed by
     ``adjust_cjk_glyph_widths``.
+
+    *stretch_pad_codepoints* is forwarded to ``adjust_cjk_glyph_widths``;
+    glyphs for those codepoints are scaled on the Y axis only so that the
+    subsequent stretch / pad pass receives a clean, uncentred glyph.
     """
     copy_cjk_glyphs_to_base(base_font, cjk_font, cjk_upm_scale, y_offset)
     adjust_cjk_glyph_widths(
         base_font, cjk_font, target_adv_w, target_adv_c,
         cjk_upm_scale,
         cjk_scale=cjk_scale,
+        stretch_pad_codepoints=stretch_pad_codepoints,
     )
 
 
@@ -843,9 +861,9 @@ def update_font_metadata(font: TTFont, config: FontMergeConfig) -> None:
         3:  f"Merged:{full_name}",
         4:  full_name,
         6:  ps_name,
-        8:  config.new_author,
-        9:  config.new_author,
-        10: config.new_description,
+        8:  config.author,
+        9:  config.author,
+        10: config.description,
         16: config.new_font_family,
         17: config.new_font_subfamily,
     }
@@ -1023,10 +1041,14 @@ def process_font(
         scale_font(western_font, total_western_scale_x, total_western_scale_y)
     western_font["head"].unitsPerEm = upm
 
-    stretch_set = parse_codepoints(config.stretch_chars)
+    stretch_pad_codepoints = {
+        cp for dw in config.double_width for cp in parse_codepoints(dw.chars)
+    }
 
     # Merge CJK glyphs: phase 1 copies them at UPM-normalised size;
     # phase 2 centres each glyph within its target fullwidth or halfwidth cell.
+    # Glyphs in double_width are only scaled on the Y axis here
+    # so that the subsequent stretch / pad pass can position them correctly.
     merge_cjk_glyphs(
         base_font=western_font,
         cjk_font=cjk_font,
@@ -1035,24 +1057,22 @@ def process_font(
         cjk_upm_scale=cjk_upm_scale,
         y_offset=y_offset,
         cjk_scale=config.cjk_scale,
+        stretch_pad_codepoints=stretch_pad_codepoints,
     )
 
-    # Stretch / pad western-side glyphs that fall outside CJK ranges.
-    # Use target_adv_c (the expanded fullwidth) as the double-width target.
-    for codepoint in stretch_set:
-        stretch_glyph_width(western_font, codepoint, target_adv_c)
-
-    for pad_cfg in config.pad_configs:
-        for codepoint in parse_codepoints(pad_cfg.chars):
-            pad_glyph_width(western_font, codepoint, target_adv_c, pad_cfg.alignment)
+    # Apply double-width rules: stretch or pad each glyph to target_adv_c.
+    for dw_cfg in config.double_width:
+        for codepoint in parse_codepoints(dw_cfg.chars):
+            if dw_cfg.strategy is DoubleWidthStrategy.STRETCH:
+                stretch_glyph_width(western_font, codepoint, target_adv_c)
+            else:
+                pad_glyph_width(western_font, codepoint, target_adv_c, dw_cfg.strategy)
 
     # Force the advance of every stretched / padded glyph to target_adv_c so
     # that ink repositioning never leaves a residual halfwidth advance.
     fullwidth_cmap = western_font.getBestCmap()
     fullwidth_tables = FontTables.from_font(western_font)
-    fullwidth_codepoints = stretch_set | {
-        cp for cfg in config.pad_configs for cp in parse_codepoints(cfg.chars)
-    }
+    fullwidth_codepoints = stretch_pad_codepoints
     for codepoint in fullwidth_codepoints:
         glyph_name = fullwidth_cmap.get(codepoint)
         if glyph_name and glyph_name in fullwidth_tables.hmtx.metrics:
@@ -1093,7 +1113,7 @@ def process_family(family_name: str, family: FontFamilySpec) -> None:
     """
     # Load symbol fonts once; they are read-only across all subfamily runs.
     symbol_fonts: list[TTFont] = []
-    for sym_path in family.symbol_font_paths:
+    for sym_path in family.symbol_fonts:
         try:
             symbol_fonts.append(load_font(sym_path))
         except (FileNotFoundError, OSError) as err:
@@ -1104,8 +1124,8 @@ def process_family(family_name: str, family: FontFamilySpec) -> None:
     for subfamily_name, spec in family.subfamilies.items():
         try:
             loaded[subfamily_name] = (
-                load_font(spec.western_font_path),
-                load_font(spec.cjk_font_path),
+                load_font(spec.western_font),
+                load_font(spec.cjk_font),
             )
         except FileNotFoundError as err:
             print(f"  Error loading fonts for {subfamily_name!r}: {err}")
@@ -1123,13 +1143,12 @@ def process_family(family_name: str, family: FontFamilySpec) -> None:
             western_font, cjk_font = loaded[subfamily_name]
             output_filename = make_output_filename(family_name, subfamily_name)
             config = FontMergeConfig(
-                stretch_chars=family.stretch_chars,
-                pad_configs=family.pad_configs,
+                double_width=family.double_width,
                 adjust_baseline=family.adjust_baseline,
                 new_font_family=family_name,
                 new_font_subfamily=subfamily_name,
-                new_author=family.new_author,
-                new_description=family.new_description,
+                author=family.author,
+                description=family.description,
                 mark_as_monospace=family.mark_as_monospace,
                 cjk_scale=spec.cjk_scale,
                 western_scale_x=spec.western_scale_x,
@@ -1159,26 +1178,16 @@ def process_family(family_name: str, family: FontFamilySpec) -> None:
 
 def main() -> None:
     """Parse arguments, load TOML configuration, and run all merging tasks."""
-    default_config = os.path.join(
-        os.path.dirname(os.path.abspath(__file__)), "merge_font.toml"
-    )
-
     parser = argparse.ArgumentParser(
         description="Merge western and CJK fonts according to a TOML configuration.",
     )
     parser.add_argument(
-        "--config", "-c",
-        default=default_config,
+        "config",
         metavar="FILE",
-        help=f"Path to the TOML configuration file (default: {default_config})",
+        help="Path to the TOML configuration file",
     )
     args = parser.parse_args()
 
     families = load_families(args.config)
     for family_name, family in families.items():
         process_family(family_name, family)
-
-
-if __name__ == "__main__":
-    main()
-
