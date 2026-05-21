@@ -108,37 +108,37 @@ cjk_scale       = 1.16
 
 # ── Monaspace Argon + LXGW Bright GB ────────────────────────────────────────
 
-[families."Monaspace Argon LXGW NF".subfamilies.Light]
+[families."Monaspace Argon LXGW GB NF".subfamilies.Light]
 western_font    = "~/Library/Fonts/MonaspaceArgon-Light.otf"
 cjk_font        = "~/Library/Fonts/LXGWBrightGB-Light.ttf"
 western_scale_x = 0.9
 cjk_scale       = 1.16
 
-[families."Monaspace Argon LXGW NF".subfamilies."Light Italic"]
+[families."Monaspace Argon LXGW GB NF".subfamilies."Light Italic"]
 western_font    = "~/Library/Fonts/MonaspaceArgon-LightItalic.otf"
 cjk_font        = "~/Library/Fonts/LXGWBrightGB-Light.ttf"
 western_scale_x = 0.9
 cjk_scale       = 1.16
 
-[families."Monaspace Argon LXGW NF".subfamilies.Regular]
+[families."Monaspace Argon LXGW GB NF".subfamilies.Regular]
 western_font    = "~/Library/Fonts/MonaspaceArgon-Regular.otf"
 cjk_font        = "~/Library/Fonts/LXGWBrightGB-Regular.ttf"
 western_scale_x = 0.9
 cjk_scale       = 1.16
 
-[families."Monaspace Argon LXGW NF".subfamilies.Italic]
+[families."Monaspace Argon LXGW GB NF".subfamilies.Italic]
 western_font    = "~/Library/Fonts/MonaspaceArgon-Italic.otf"
 cjk_font        = "~/Library/Fonts/LXGWBrightGB-Regular.ttf"
 western_scale_x = 0.9
 cjk_scale       = 1.16
 
-[families."Monaspace Argon LXGW NF".subfamilies.Medium]
+[families."Monaspace Argon LXGW GB NF".subfamilies.Medium]
 western_font    = "~/Library/Fonts/MonaspaceArgon-Medium.otf"
 cjk_font        = "~/Library/Fonts/LXGWBrightGB-Medium.ttf"
 western_scale_x = 0.9
 cjk_scale       = 1.16
 
-[families."Monaspace Argon LXGW NF".subfamilies."Medium Italic"]
+[families."Monaspace Argon LXGW GB NF".subfamilies."Medium Italic"]
 western_font    = "~/Library/Fonts/MonaspaceArgon-MediumItalic.otf"
 cjk_font        = "~/Library/Fonts/LXGWBrightGB-Medium.ttf"
 western_scale_x = 0.9
