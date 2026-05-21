@@ -108,7 +108,7 @@ def _extract_common(data: dict) -> dict:
 def _build_family_spec(merged: dict) -> FontFamilySpec:
     """Construct a :class:`FontFamilySpec` from a fully-merged settings dict."""
     subfamilies: dict[str, SubfamilySpec] = {
-        SubfamilySpec(
+        name: SubfamilySpec(
             western_font=os.path.expandvars(os.path.expanduser(spec["western_font"])),
             cjk_font=os.path.expandvars(os.path.expanduser(spec["cjk_font"])),
             cjk_scale=float(spec.get("cjk_scale", 1.0)),
