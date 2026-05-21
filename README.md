@@ -197,17 +197,25 @@ normalised to the halfwidth cell.
 
 ### Font Families and Subfamilies
 
-Each family is declared as a TOML table. You only need to supply the subfamily
-entries — all other settings fall back to the top-level defaults (or can be
-overridden at the family level):
+Families are declared as TOML array-of-tables (`[[families]]`). Each family
+block must have a `name` key; all other settings fall back to the top-level
+defaults and can be overridden at the family level. Subfamilies are nested
+under the same family block as `[[families.subfamilies]]` entries:
 
 ```toml
-[families."My Font NF".subfamilies.Regular]
+[[families]]
+name = "My Font NF"
+# Optional: override any top-level default for this family only
+# remove_hints = false
+
+[[families.subfamilies]]
+name         = "Regular"
 western_font = "~/Library/Fonts/MyFont-Regular.ttf"
 cjk_font     = "~/Library/Fonts/NotoSansCJKtc-Regular.otf"
 cjk_scale    = 1.15
 
-[families."My Font NF".subfamilies.Bold]
+[[families.subfamilies]]
+name         = "Bold"
 western_font = "~/Library/Fonts/MyFont-Bold.ttf"
 cjk_font     = "~/Library/Fonts/NotoSansCJKtc-Bold.otf"
 cjk_scale    = 1.15
