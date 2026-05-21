@@ -67,112 +67,262 @@ symbol_fonts = [
 #   cjk_font     = "~/Library/Fonts/NotoSansCJK-Regular.ttf"
 #   cjk_scale    = 1.15
 
+# ── Monaspace Argon + LXGW Bright ────────────────────────────────────────
+
+[families."Monaspace Argon LXGW NF".subfamilies.Light]
+western_font    = "~/Library/Fonts/MonaspaceArgon-Light.otf"
+cjk_font        = "~/Library/Fonts/LXGWBright-Light.ttf"
+western_scale_x = 0.9
+cjk_scale       = 1.16
+
+[families."Monaspace Argon LXGW NF".subfamilies."Light Italic"]
+western_font    = "~/Library/Fonts/MonaspaceArgon-LightItalic.otf"
+cjk_font        = "~/Library/Fonts/LXGWBright-Light.ttf"
+western_scale_x = 0.9
+cjk_scale       = 1.16
+
+[families."Monaspace Argon LXGW NF".subfamilies.Regular]
+western_font    = "~/Library/Fonts/MonaspaceArgon-Regular.otf"
+cjk_font        = "~/Library/Fonts/LXGWBright-Regular.ttf"
+western_scale_x = 0.9
+cjk_scale       = 1.16
+
+[families."Monaspace Argon LXGW NF".subfamilies.Italic]
+western_font    = "~/Library/Fonts/MonaspaceArgon-Italic.otf"
+cjk_font        = "~/Library/Fonts/LXGWBright-Regular.ttf"
+western_scale_x = 0.9
+cjk_scale       = 1.16
+
+[families."Monaspace Argon LXGW NF".subfamilies.Medium]
+western_font    = "~/Library/Fonts/MonaspaceArgon-Medium.otf"
+cjk_font        = "~/Library/Fonts/LXGWBright-Medium.ttf"
+western_scale_x = 0.9
+cjk_scale       = 1.16
+
+[families."Monaspace Argon LXGW NF".subfamilies."Medium Italic"]
+western_font    = "~/Library/Fonts/MonaspaceArgon-MediumItalic.otf"
+cjk_font        = "~/Library/Fonts/LXGWBright-Medium.ttf"
+western_scale_x = 0.9
+cjk_scale       = 1.16
+
+
+# ── Monaspace Argon + LXGW Bright GB ────────────────────────────────────────
+
+[families."Monaspace Argon LXGW NF".subfamilies.Light]
+western_font    = "~/Library/Fonts/MonaspaceArgon-Light.otf"
+cjk_font        = "~/Library/Fonts/LXGWBrightGB-Light.ttf"
+western_scale_x = 0.9
+cjk_scale       = 1.16
+
+[families."Monaspace Argon LXGW NF".subfamilies."Light Italic"]
+western_font    = "~/Library/Fonts/MonaspaceArgon-LightItalic.otf"
+cjk_font        = "~/Library/Fonts/LXGWBrightGB-Light.ttf"
+western_scale_x = 0.9
+cjk_scale       = 1.16
+
+[families."Monaspace Argon LXGW NF".subfamilies.Regular]
+western_font    = "~/Library/Fonts/MonaspaceArgon-Regular.otf"
+cjk_font        = "~/Library/Fonts/LXGWBrightGB-Regular.ttf"
+western_scale_x = 0.9
+cjk_scale       = 1.16
+
+[families."Monaspace Argon LXGW NF".subfamilies.Italic]
+western_font    = "~/Library/Fonts/MonaspaceArgon-Italic.otf"
+cjk_font        = "~/Library/Fonts/LXGWBrightGB-Regular.ttf"
+western_scale_x = 0.9
+cjk_scale       = 1.16
+
+[families."Monaspace Argon LXGW NF".subfamilies.Medium]
+western_font    = "~/Library/Fonts/MonaspaceArgon-Medium.otf"
+cjk_font        = "~/Library/Fonts/LXGWBrightGB-Medium.ttf"
+western_scale_x = 0.9
+cjk_scale       = 1.16
+
+[families."Monaspace Argon LXGW NF".subfamilies."Medium Italic"]
+western_font    = "~/Library/Fonts/MonaspaceArgon-MediumItalic.otf"
+cjk_font        = "~/Library/Fonts/LXGWBrightGB-Medium.ttf"
+western_scale_x = 0.9
+cjk_scale       = 1.16
+
+
 # ── Monaspace Argon + LXGW Bright TC ────────────────────────────────────────
 
-[families."Monaspace Argon LXGW Bright TC NF".subfamilies.Light]
+[families."Monaspace Argon LXGW TC NF".subfamilies.Light]
 western_font    = "~/Library/Fonts/MonaspaceArgon-Light.otf"
 cjk_font        = "~/Library/Fonts/LXGWBrightTC-Light.ttf"
 western_scale_x = 0.9
 cjk_scale       = 1.16
 
-[families."Monaspace Argon LXGW Bright TC NF".subfamilies."Light Italic"]
+[families."Monaspace Argon LXGW TC NF".subfamilies."Light Italic"]
 western_font    = "~/Library/Fonts/MonaspaceArgon-LightItalic.otf"
 cjk_font        = "~/Library/Fonts/LXGWBrightTC-Light.ttf"
 western_scale_x = 0.9
 cjk_scale       = 1.16
 
-[families."Monaspace Argon LXGW Bright TC NF".subfamilies.Regular]
+[families."Monaspace Argon LXGW TC NF".subfamilies.Regular]
 western_font    = "~/Library/Fonts/MonaspaceArgon-Regular.otf"
 cjk_font        = "~/Library/Fonts/LXGWBrightTC-Regular.ttf"
 western_scale_x = 0.9
 cjk_scale       = 1.16
 
-[families."Monaspace Argon LXGW Bright TC NF".subfamilies.Italic]
+[families."Monaspace Argon LXGW TC NF".subfamilies.Italic]
 western_font    = "~/Library/Fonts/MonaspaceArgon-Italic.otf"
 cjk_font        = "~/Library/Fonts/LXGWBrightTC-Regular.ttf"
 western_scale_x = 0.9
 cjk_scale       = 1.16
 
-[families."Monaspace Argon LXGW Bright TC NF".subfamilies.Medium]
+[families."Monaspace Argon LXGW TC NF".subfamilies.Medium]
 western_font    = "~/Library/Fonts/MonaspaceArgon-Medium.otf"
 cjk_font        = "~/Library/Fonts/LXGWBrightTC-Medium.ttf"
 western_scale_x = 0.9
 cjk_scale       = 1.16
 
-[families."Monaspace Argon LXGW Bright TC NF".subfamilies."Medium Italic"]
+[families."Monaspace Argon LXGW TC NF".subfamilies."Medium Italic"]
 western_font    = "~/Library/Fonts/MonaspaceArgon-MediumItalic.otf"
 cjk_font        = "~/Library/Fonts/LXGWBrightTC-Medium.ttf"
 western_scale_x = 0.9
 cjk_scale       = 1.16
 
 
-# ── Monaspace Xenon + Noto Serif / LXGW Bright TC ───────────────────────────
+# ── Monaspace Xenon + Noto Serif SC / LXGW Bright GB ───────────────────────────
 
-[families."Monaspace Xenon Noto Serif LXGW CJK TC NF".subfamilies.Light]
+[families."Monaspace Xenon Noto LXGW SC NF".subfamilies.Light]
+western_font    = "~/Library/Fonts/MonaspaceXenon-Light.otf"
+cjk_font        = "~/Library/Fonts/NotoSerifCJKsc-Light.otf"
+western_scale_x = 0.9
+cjk_scale       = 1.13
+
+[families."Monaspace Xenon Noto LXGW SC NF".subfamilies."Light Italic"]
+western_font    = "~/Library/Fonts/MonaspaceXenon-LightItalic.otf"
+cjk_font        = "~/Library/Fonts/LXGWBrightGB-Light.ttf"
+western_scale_x = 0.9
+cjk_scale       = 1.16
+
+[families."Monaspace Xenon Noto LXGW SC NF".subfamilies.Regular]
+western_font    = "~/Library/Fonts/MonaspaceXenon-Regular.otf"
+cjk_font        = "~/Library/Fonts/NotoSerifCJKsc-Regular.otf"
+western_scale_x = 0.9
+cjk_scale       = 1.13
+
+[families."Monaspace Xenon Noto LXGW SC NF".subfamilies.Italic]
+western_font    = "~/Library/Fonts/MonaspaceXenon-Italic.otf"
+cjk_font        = "~/Library/Fonts/LXGWBrightGB-Regular.ttf"
+western_scale_x = 0.9
+cjk_scale       = 1.16
+
+[families."Monaspace Xenon Noto LXGW SC NF".subfamilies.Medium]
+western_font    = "~/Library/Fonts/MonaspaceXenon-Medium.otf"
+cjk_font        = "~/Library/Fonts/NotoSerifCJKsc-Medium.otf"
+western_scale_x = 0.9
+cjk_scale       = 1.13
+
+[families."Monaspace Xenon Noto LXGW SC NF".subfamilies."Medium Italic"]
+western_font    = "~/Library/Fonts/MonaspaceXenon-MediumItalic.otf"
+cjk_font        = "~/Library/Fonts/LXGWBrightGB-Medium.ttf"
+western_scale_x = 0.9
+cjk_scale       = 1.16
+
+
+# ── Monaspace Xenon + Noto Serif TC / LXGW Bright TC ───────────────────────────
+
+[families."Monaspace Xenon Noto LXGW TC NF".subfamilies.Light]
 western_font    = "~/Library/Fonts/MonaspaceXenon-Light.otf"
 cjk_font        = "~/Library/Fonts/NotoSerifCJKtc-Light.otf"
 western_scale_x = 0.9
 cjk_scale       = 1.13
 
-[families."Monaspace Xenon Noto Serif LXGW CJK TC NF".subfamilies."Light Italic"]
+[families."Monaspace Xenon Noto LXGW TC NF".subfamilies."Light Italic"]
 western_font    = "~/Library/Fonts/MonaspaceXenon-LightItalic.otf"
 cjk_font        = "~/Library/Fonts/LXGWBrightTC-Light.ttf"
 western_scale_x = 0.9
 cjk_scale       = 1.16
 
-[families."Monaspace Xenon Noto Serif LXGW CJK TC NF".subfamilies.Regular]
+[families."Monaspace Xenon Noto LXGW TC NF".subfamilies.Regular]
 western_font    = "~/Library/Fonts/MonaspaceXenon-Regular.otf"
 cjk_font        = "~/Library/Fonts/NotoSerifCJKtc-Regular.otf"
 western_scale_x = 0.9
 cjk_scale       = 1.13
 
-[families."Monaspace Xenon Noto Serif LXGW CJK TC NF".subfamilies.Italic]
+[families."Monaspace Xenon Noto LXGW TC NF".subfamilies.Italic]
 western_font    = "~/Library/Fonts/MonaspaceXenon-Italic.otf"
 cjk_font        = "~/Library/Fonts/LXGWBrightTC-Regular.ttf"
 western_scale_x = 0.9
 cjk_scale       = 1.16
 
-[families."Monaspace Xenon Noto Serif LXGW CJK TC NF".subfamilies.Medium]
+[families."Monaspace Xenon Noto LXGW TC NF".subfamilies.Medium]
 western_font    = "~/Library/Fonts/MonaspaceXenon-Medium.otf"
 cjk_font        = "~/Library/Fonts/NotoSerifCJKtc-Medium.otf"
 western_scale_x = 0.9
 cjk_scale       = 1.13
 
-[families."Monaspace Xenon Noto Serif LXGW CJK TC NF".subfamilies."Medium Italic"]
+[families."Monaspace Xenon Noto LXGW TC NF".subfamilies."Medium Italic"]
 western_font    = "~/Library/Fonts/MonaspaceXenon-MediumItalic.otf"
 cjk_font        = "~/Library/Fonts/LXGWBrightTC-Medium.ttf"
 western_scale_x = 0.9
 cjk_scale       = 1.16
 
 
-# ── JetBrains Mono + Noto Sans / LXGW Bright TC ─────────────────────────────
+# ── JetBrains Mono + Noto Sans SC / LXGW Bright GB ─────────────────────────────
 
-[families."JetBrains Mono Noto Sans LXGW CJK TC NF".subfamilies.Light]
+[families."JetBrains Noto LXGW SC NF".subfamilies.Light]
+western_font = "~/Library/Fonts/JetBrainsMono-Light.ttf"
+cjk_font     = "~/Library/Fonts/NotoSansCJKsc-Light.otf"
+cjk_scale    = 1.16
+
+[families."JetBrains Noto LXGW SC NF".subfamilies."Light Italic"]
+western_font = "~/Library/Fonts/JetBrainsMono-LightItalic.ttf"
+cjk_font     = "~/Library/Fonts/LXGWBrightGB-Light.ttf"
+cjk_scale    = 1.2
+
+[families."JetBrains Noto LXGW SC NF".subfamilies.Regular]
+western_font = "~/Library/Fonts/JetBrainsMono-Regular.ttf"
+cjk_font     = "~/Library/Fonts/NotoSansCJKsc-Regular.otf"
+cjk_scale    = 1.16
+
+[families."JetBrains Noto LXGW SC NF".subfamilies.Italic]
+western_font = "~/Library/Fonts/JetBrainsMono-Italic.ttf"
+cjk_font     = "~/Library/Fonts/LXGWBrightGB-Regular.ttf"
+cjk_scale    = 1.2
+
+[families."JetBrains Noto LXGW SC NF".subfamilies.Medium]
+western_font = "~/Library/Fonts/JetBrainsMono-Medium.ttf"
+cjk_font     = "~/Library/Fonts/NotoSansCJKsc-Medium.otf"
+cjk_scale    = 1.16
+
+[families."JetBrains Noto LXGW SC NF".subfamilies."Medium Italic"]
+western_font = "~/Library/Fonts/JetBrainsMono-MediumItalic.ttf"
+cjk_font     = "~/Library/Fonts/LXGWBrightGB-Medium.ttf"
+cjk_scale    = 1.2
+
+
+# ── JetBrains Mono + Noto Sans TC / LXGW Bright TC ─────────────────────────────
+
+[families."JetBrains Noto LXGW TC NF".subfamilies.Light]
 western_font = "~/Library/Fonts/JetBrainsMono-Light.ttf"
 cjk_font     = "~/Library/Fonts/NotoSansCJKtc-Light.otf"
 cjk_scale    = 1.16
 
-[families."JetBrains Mono Noto Sans LXGW CJK TC NF".subfamilies."Light Italic"]
+[families."JetBrains Noto LXGW TC NF".subfamilies."Light Italic"]
 western_font = "~/Library/Fonts/JetBrainsMono-LightItalic.ttf"
 cjk_font     = "~/Library/Fonts/LXGWBrightTC-Light.ttf"
 cjk_scale    = 1.2
 
-[families."JetBrains Mono Noto Sans LXGW CJK TC NF".subfamilies.Regular]
+[families."JetBrains Noto LXGW TC NF".subfamilies.Regular]
 western_font = "~/Library/Fonts/JetBrainsMono-Regular.ttf"
 cjk_font     = "~/Library/Fonts/NotoSansCJKtc-Regular.otf"
 cjk_scale    = 1.16
 
-[families."JetBrains Mono Noto Sans LXGW CJK TC NF".subfamilies.Italic]
+[families."JetBrains Noto LXGW TC NF".subfamilies.Italic]
 western_font = "~/Library/Fonts/JetBrainsMono-Italic.ttf"
 cjk_font     = "~/Library/Fonts/LXGWBrightTC-Regular.ttf"
 cjk_scale    = 1.2
 
-[families."JetBrains Mono Noto Sans LXGW CJK TC NF".subfamilies.Medium]
+[families."JetBrains Noto LXGW TC NF".subfamilies.Medium]
 western_font = "~/Library/Fonts/JetBrainsMono-Medium.ttf"
 cjk_font     = "~/Library/Fonts/NotoSansCJKtc-Medium.otf"
 cjk_scale    = 1.16
 
-[families."JetBrains Mono Noto Sans LXGW CJK TC NF".subfamilies."Medium Italic"]
+[families."JetBrains Noto LXGW TC NF".subfamilies."Medium Italic"]
 western_font = "~/Library/Fonts/JetBrainsMono-MediumItalic.ttf"
 cjk_font     = "~/Library/Fonts/LXGWBrightTC-Medium.ttf"
 cjk_scale    = 1.2
