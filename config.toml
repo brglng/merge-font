@@ -298,7 +298,7 @@ name = "JetBrains Noto LXGW SC NF"
 name         = "Light"
 western_font = "~/Library/Fonts/JetBrainsMono-Light.ttf"
 cjk_font     = "~/Library/Fonts/NotoSansCJKsc-Light.otf"
-cjk_scale    = 1.16
+cjk_scale    = 1.15
 
 [[families.subfamilies]]
 name         = "Light Italic"
@@ -310,7 +310,7 @@ cjk_scale    = 1.2
 name         = "Regular"
 western_font = "~/Library/Fonts/JetBrainsMono-Regular.ttf"
 cjk_font     = "~/Library/Fonts/NotoSansCJKsc-Regular.otf"
-cjk_scale    = 1.16
+cjk_scale    = 1.15
 
 [[families.subfamilies]]
 name         = "Italic"
@@ -322,7 +322,7 @@ cjk_scale    = 1.2
 name         = "Medium"
 western_font = "~/Library/Fonts/JetBrainsMono-Medium.ttf"
 cjk_font     = "~/Library/Fonts/NotoSansCJKsc-Medium.otf"
-cjk_scale    = 1.16
+cjk_scale    = 1.15
 
 [[families.subfamilies]]
 name         = "Medium Italic"
@@ -340,7 +340,7 @@ name = "JetBrains Noto LXGW TC NF"
 name         = "Light"
 western_font = "~/Library/Fonts/JetBrainsMono-Light.ttf"
 cjk_font     = "~/Library/Fonts/NotoSansCJKtc-Light.otf"
-cjk_scale    = 1.16
+cjk_scale    = 1.15
 
 [[families.subfamilies]]
 name         = "Light Italic"
@@ -352,7 +352,7 @@ cjk_scale    = 1.2
 name         = "Regular"
 western_font = "~/Library/Fonts/JetBrainsMono-Regular.ttf"
 cjk_font     = "~/Library/Fonts/NotoSansCJKtc-Regular.otf"
-cjk_scale    = 1.16
+cjk_scale    = 1.15
 
 [[families.subfamilies]]
 name         = "Italic"
@@ -364,7 +364,7 @@ cjk_scale    = 1.2
 name         = "Medium"
 western_font = "~/Library/Fonts/JetBrainsMono-Medium.ttf"
 cjk_font     = "~/Library/Fonts/NotoSansCJKtc-Medium.otf"
-cjk_scale    = 1.16
+cjk_scale    = 1.15
 
 [[families.subfamilies]]
 name         = "Medium Italic"
