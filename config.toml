@@ -19,7 +19,7 @@ description = ""
 
 mark_as_monospace = true
 remove_hints      = true
-adjust_baseline   = true
+adjust_baseline   = false
 
 # Characters/ranges to expand to double (fullwidth) advance width.
 # strategy = "stretch"    — scale the outline horizontally
