@@ -1,5 +1,7 @@
 # merge-font
 
+[English](./README.md) | [简体中文](./README.zh-Hans.md) | [繁體中文](./README.zh-Hant.md)
+
 A tool for merging western (Latin) and CJK fonts into a single monospaced font
 file.
 
