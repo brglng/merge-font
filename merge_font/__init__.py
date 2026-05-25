@@ -657,10 +657,9 @@ def copy_cjk_glyphs_to_base(
     base_font: TTFont,
     cjk_font: TTFont,
     cjk_upm_scale: float,
-    y_offset: int,
 ) -> None:
     """Phase 1 — Deep-copy every CJK glyph (and its dependencies) from the CJK
-    font into the base font, applying UPM scaling and vertical offset.
+    font into the base font, applying UPM scaling.
 
     Copied glyphs are prefixed with ``cjk_`` to avoid name collisions.
     """
@@ -681,11 +680,9 @@ def copy_cjk_glyphs_to_base(
             if new_dep_name in base_tables.glyf:
                 continue
 
-            is_top_level = dep_name == cjk_glyph_name
             copy_glyph_into(
                 cjk_tables, base_tables, dep_name, new_dep_name, base_font,
                 scale_x=cjk_upm_scale, scale_y=cjk_upm_scale,
-                y_offset=y_offset, apply_y_offset=is_top_level,
             )
 
             # Rename component references to use the cjk_ prefix.
@@ -786,19 +783,37 @@ def merge_cjk_glyphs(
     """Copy CJK glyphs into the base font and adjust their advance widths.
 
     Orchestrates the two phases: ``copy_cjk_glyphs_to_base`` followed by
-    ``adjust_cjk_glyph_widths``.
+    ``adjust_cjk_glyph_widths``, followed by a uniform Y shift to align
+    the CJK baseline with the western baseline (plus any manual offset
+    expressed via *y_offset*).
 
     *stretch_pad_codepoints* is forwarded to ``adjust_cjk_glyph_widths``;
     glyphs for those codepoints are scaled on the Y axis only so that the
     subsequent stretch / pad pass receives a clean, uncentred glyph.
+
+    Parameters
+    ----------
+    y_offset : int
+        Combined vertical shift (font units) to apply to all ``cjk_``-prefixed
+        glyphs after the two-phase merge.  Includes both the automatic
+        baseline alignment component and the user-specified
+        ``cjk_offset_y``.
     """
-    copy_cjk_glyphs_to_base(base_font, cjk_font, cjk_upm_scale, y_offset)
+    copy_cjk_glyphs_to_base(base_font, cjk_font, cjk_upm_scale)
     adjust_cjk_glyph_widths(
         base_font, cjk_font, target_adv_w, target_adv_c,
         cjk_upm_scale,
         cjk_scale=cjk_scale,
         stretch_pad_codepoints=stretch_pad_codepoints,
     )
+
+    # Apply the combined Y offset (baseline alignment + manual offset) to
+    # every CJK glyph as a uniform vertical translation.
+    if y_offset:
+        cjk_tables = FontTables.from_font(base_font)
+        for glyph_name in list(cjk_tables.glyf.keys()):
+            if glyph_name.startswith("cjk_"):
+                GlyphTransformer.shift_vertical(cjk_tables.glyf[glyph_name], y_offset)
 
 
 # ---------------------------------------------------------------------------
@@ -894,27 +909,40 @@ def mark_font_as_monospace(font: TTFont, target_adv_w: int):
 # ---------------------------------------------------------------------------
 
 
-def compute_baseline_y_offset(
+def compute_y_offsets(
     western_font: TTFont,
     western_y_scale: float,
     cjk_font: TTFont,
     cjk_upm_scale: float,
     cjk_scale: float,
-) -> int:
-    """Calculate the vertical shift needed to align the CJK baseline
-    with the (already-scaled) western baseline.
+    adjust_baseline: bool = True,
+    cjk_offset_y: int = 0,
+    western_offset_y: int = 0,
+) -> tuple[int, int]:
+    """Calculate the vertical shifts for CJK and western glyphs.
 
-    *y_offset* is applied to CJK glyphs in phase 1 (copy), **before**
-    *cjk_scale* is applied in phase 2 (centre).  Because phase 2 scales
-    around the origin, the offset is magnified by *cjk_scale*, so we must
-    pre-divide the western target by *cjk_scale* to arrive at the correct
-    pre-phase-2 position.
+    Returns ``(cjk_y_offset, western_y_offset)`` — both in font units,
+    ready to be applied as a uniform vertical translation after all scaling
+    steps.
+
+    When *adjust_baseline* is ``True`` the baseline alignment component
+    centres the CJK typeface on the western typographic centre.  The per-font
+    manual offsets (*cjk_offset_y* / *western_offset_y*) are added on top
+    regardless of the *adjust_baseline* flag.
     """
-    western_os2 = western_font["OS/2"]
-    cjk_os2 = cjk_font["OS/2"]
-    western_center = (western_os2.sTypoAscender + western_os2.sTypoDescender) / 2.0
-    cjk_center = (cjk_os2.sTypoAscender + cjk_os2.sTypoDescender) / 2.0
-    return int(round(western_center * western_y_scale / cjk_scale - cjk_center * cjk_upm_scale))
+    baseline_shift = 0
+    if adjust_baseline:
+        western_os2 = western_font["OS/2"]
+        cjk_os2 = cjk_font["OS/2"]
+        western_center = (western_os2.sTypoAscender + western_os2.sTypoDescender) / 2.0
+        cjk_center = (cjk_os2.sTypoAscender + cjk_os2.sTypoDescender) / 2.0
+        baseline_shift = int(round(
+            western_center * western_y_scale
+            - cjk_center * cjk_upm_scale * cjk_scale
+        ))
+    cjk_y = baseline_shift + cjk_offset_y
+    western_y = western_offset_y
+    return cjk_y, western_y
 
 
 # ---------------------------------------------------------------------------
@@ -991,11 +1019,13 @@ def process_font(
     1. Scale the western font to the unified UPM, normalise its 'A' advance
        to ``target_adv_w``, and apply the per-axis ``western_scale_x`` /
        ``western_scale_y`` adjustments — all in a single ``scale_font`` pass.
-    2. Copy CJK glyphs and centre each one within its target cell
-       (fullwidth or halfwidth).
-    3. Stretch / pad designated western-side glyphs to ``target_adv_c``.
-    4. Overlay symbol fonts.
-    5. Write metadata and save.
+    2. Apply ``western_offset_y`` to all non-CJK glyphs.
+    3. Copy CJK glyphs, centre each one within its target cell
+       (fullwidth or halfwidth), then apply the combined baseline-alignment
+       and ``cjk_offset_y`` vertical shift.
+    4. Stretch / pad designated western-side glyphs to ``target_adv_c``.
+    5. Overlay symbol fonts.
+    6. Write metadata and save.
 
     Parameters
     ----------
@@ -1027,19 +1057,29 @@ def process_font(
     total_western_scale_x = western_scale * config.western_scale_x
     total_western_scale_y = western_scale * config.western_scale_y
 
-    # Baseline alignment — must be computed before the western font is mutated.
-    y_offset = 0
-    if config.adjust_baseline:
-        y_offset = compute_baseline_y_offset(
-            western_font, total_western_scale_y, cjk_font, cjk_upm_scale,
-            config.cjk_scale,
-        )
+    # Baseline alignment + user-specified Y offsets — all computed before
+    # the western font is mutated so the metrics are still in their
+    # original state.
+    cjk_y_offset, western_y_offset = compute_y_offsets(
+        western_font, total_western_scale_y, cjk_font, cjk_upm_scale,
+        config.cjk_scale,
+        adjust_baseline=config.adjust_baseline,
+        cjk_offset_y=config.cjk_offset_y,
+        western_offset_y=config.western_offset_y,
+    )
 
     # Scale the western font: uniform 'A'-advance normalisation combined with
     # the per-axis adjustments in a single pass to avoid double-rounding.
     if total_western_scale_x != 1.0 or total_western_scale_y != 1.0:
         scale_font(western_font, total_western_scale_x, total_western_scale_y)
     western_font["head"].unitsPerEm = upm
+
+    # Apply western Y offset — shift every non-CJK glyph uniformly.
+    if western_y_offset:
+        western_tables = FontTables.from_font(western_font)
+        for glyph_name in list(western_tables.glyf.keys()):
+            if not glyph_name.startswith("cjk_"):
+                GlyphTransformer.shift_vertical(western_tables.glyf[glyph_name], western_y_offset)
 
     stretch_pad_codepoints = {
         cp for dw in config.double_width for cp in parse_codepoints(dw.chars)
@@ -1055,7 +1095,7 @@ def process_font(
         target_adv_w=target_adv_w,
         target_adv_c=target_adv_c,
         cjk_upm_scale=cjk_upm_scale,
-        y_offset=y_offset,
+        y_offset=cjk_y_offset,
         cjk_scale=config.cjk_scale,
         stretch_pad_codepoints=stretch_pad_codepoints,
     )
@@ -1142,6 +1182,9 @@ def process_family(family: FontFamilySpec) -> None:
     try:
         for spec, western_font, cjk_font in loaded:
             output_filename = make_output_filename(family_name, spec.name)
+            # Convert ratio-based offsets (relative to UPM) to font units.
+            cjk_offset_y_font_units = int(round(spec.cjk_offset_y * scaling.upm))
+            western_offset_y_font_units = int(round(spec.western_offset_y * scaling.upm))
             config = FontMergeConfig(
                 double_width=family.double_width,
                 adjust_baseline=family.adjust_baseline,
@@ -1154,6 +1197,8 @@ def process_family(family: FontFamilySpec) -> None:
                 western_scale_x=spec.western_scale_x,
                 western_scale_y=spec.western_scale_y,
                 remove_hints=family.remove_hints,
+                cjk_offset_y=cjk_offset_y_font_units,
+                western_offset_y=western_offset_y_font_units,
             )
             print(f"  Processing: {output_filename} ...")
             try:

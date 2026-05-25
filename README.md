@@ -1,8 +1,26 @@
 # merge-font
 
-A Python tool that merges western (Latin) and CJK fonts into a single font file,
-with configurable glyph scaling, symbol font overlays, double-width character
-expansion, baseline alignment, and metadata customisation.
+A tool for merging western (Latin) and CJK fonts into a single monospaced font
+file.
+
+## Features
+
+- **2:1 width ratio** — every CJK glyph is exactly twice the advance width of a
+  western glyph, matching the convention used by terminal emulators and code
+  editors.
+- **Configurable scaling** — fine-tune the size of CJK glyphs and adjust
+  western glyph proportions independently on each axis.
+- **Baseline alignment** — automatically centres the CJK typeface on the
+  western typographic baseline, with manual offsets for precise adjustment.
+- **Symbol font overlays** — layer icon fonts (e.g. Nerd Font) on top of the
+  merged result.
+- **Double-width characters** — stretch or pad selected ASCII punctuation (…,
+  —, ‘, ’, etc.) to fill a fullwidth cell.
+- **Metadata customisation** — set the font family name, subfamily, author, and
+  description.
+- **OTF → TTF conversion** — PostScript outlines are automatically converted
+  to TrueType for compatibility.
+- **Optional hint removal** — strip all TrueType hinting data from the output.
 
 ---
 
@@ -233,6 +251,8 @@ the family and subfamily names, e.g. `MyFontNF-Regular.ttf`.
 | `cjk_scale` | float | `1.0` | Uniform scale applied to CJK glyphs after UPM normalisation. Values above `1.0` make CJK characters appear larger relative to the western text. |
 | `western_scale_x` | float | `1.0` | Additional horizontal scale applied to western glyphs after advance-width normalisation. Use values below `1.0` to narrow the western text. |
 | `western_scale_y` | float | `1.0` | Additional vertical scale applied to western glyphs after advance-width normalisation. |
+| `cjk_offset_y` | float (UPM ratio) | `0.0` | Additional vertical offset applied to CJK glyphs after all CJK processing, as a ratio of the font UPM (1.0 = one full em). Positive values shift CJK glyphs downward. |
+| `western_offset_y` | float (UPM ratio) | `0.0` | Additional vertical offset applied to western glyphs after scaling, as a ratio of the font UPM (1.0 = one full em). Positive values shift western glyphs downward. |
 
 ### Full Example
 

@@ -119,6 +119,8 @@ def _build_family_spec(name: str, merged: dict) -> FontFamilySpec:
             cjk_scale=float(spec.get("cjk_scale", 1.0)),
             western_scale_x=float(spec.get("western_scale_x", 1.0)),
             western_scale_y=float(spec.get("western_scale_y", 1.0)),
+            cjk_offset_y=float(spec.get("cjk_offset_y", 0.0)),
+            western_offset_y=float(spec.get("western_offset_y", 0.0)),
         )
         for spec in merged.get("subfamilies", [])
     ]

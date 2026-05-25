@@ -88,6 +88,14 @@ class FontMergeConfig:
         'A'-advance normalisation.  May be larger or smaller than 1.0.
     remove_hints : bool
         Whether to strip all hinting data from the output font.
+    cjk_offset_y : float
+        Additional vertical offset applied to CJK glyphs in font units.
+        Computed from the subfamily-level ``cjk_offset_y`` setting (a UPM
+        ratio) by multiplying with ``upm``.
+    western_offset_y : float
+        Additional vertical offset applied to western glyphs in font units.
+        Computed from the subfamily-level ``western_offset_y`` setting (a UPM
+        ratio) by multiplying with ``upm``.
     """
 
     double_width: list[DoubleWidthConfig]
@@ -101,6 +109,8 @@ class FontMergeConfig:
     western_scale_x: float
     western_scale_y: float
     remove_hints: bool
+    cjk_offset_y: int = 0
+    western_offset_y: int = 0
 
 
 # ---------------------------------------------------------------------------
@@ -161,6 +171,17 @@ class SubfamilySpec:
         Additional Y-axis scale applied to western glyphs after the uniform
         'A'-advance normalisation.  May be larger or smaller than 1.0.
         Defaults to 1.0 (no extra vertical scaling).
+    cjk_offset_y : float
+        Additional vertical offset applied to CJK glyphs **after** all CJK
+        processing (UPM scaling, cjk\_scale, baseline alignment).  Expressed
+        as a ratio relative to the font UPM (1.0 = one full em).  Positive
+        values shift CJK glyphs downward.  Defaults to 0.0 (no additional
+        offset).
+    western_offset_y : float
+        Additional vertical offset applied to western glyphs **after** the
+        western font has been scaled.  Expressed as a ratio relative to the
+        font UPM (1.0 = one full em).  Positive values shift western glyphs
+        downward.  Defaults to 0.0 (no additional offset).
     """
 
     name: str
@@ -169,6 +190,8 @@ class SubfamilySpec:
     cjk_scale: float = 1.0
     western_scale_x: float = 1.0
     western_scale_y: float = 1.0
+    cjk_offset_y: float = 0.0
+    western_offset_y: float = 0.0
 
 
 @dataclass
