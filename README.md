@@ -158,9 +158,10 @@ Configuration is written in [TOML](https://toml.io/). The file has three
 levels:
 
 1. **Top-level keys** — global defaults shared by every font family.
-2. **`[families."<FamilyName>"]`** — overrides for one family (optional).
-3. **`[families."<FamilyName>".subfamilies."<SubfamilyName>"]`** — per-weight
-   font file paths and scaling factors.
+2. **`[[families]]`** — array of family blocks, each with a ``name`` key and
+   optional overrides for the defaults above.
+3. **`[[families.subfamilies]]`** — per-weight font file paths and scaling
+   factors, nested within a family block.
 
 ### Top-level Defaults
 
@@ -174,7 +175,7 @@ levels:
 | `symbol_fonts` | list of paths | `[]` | Symbol fonts to overlay on every subfamily output. |
 | `[[double_width]]` | array of tables | `[]` | Rules for widening glyphs to a fullwidth cell. |
 
-All of these keys can be overridden inside any `[families."<Name>"]` section.
+All of these keys can be overridden inside any ``[[families]]`` block.
 
 ### double\_width Rules
 
@@ -253,8 +254,8 @@ the family and subfamily names, e.g. `MyFontNF-Regular.ttf`.
 | `cjk_scale` | float | `1.0` | Uniform scale applied to CJK glyphs after UPM normalisation. Values above `1.0` make CJK characters appear larger relative to the western text. |
 | `western_scale_x` | float | `1.0` | Additional horizontal scale applied to western glyphs after advance-width normalisation. Use values below `1.0` to narrow the western text. |
 | `western_scale_y` | float | `1.0` | Additional vertical scale applied to western glyphs after advance-width normalisation. |
-| `cjk_offset_y` | float (UPM ratio) | `0.0` | Additional vertical offset applied to CJK glyphs after all CJK processing, as a ratio of the font UPM (1.0 = one full em). Positive values shift CJK glyphs downward. |
-| `western_offset_y` | float (UPM ratio) | `0.0` | Additional vertical offset applied to western glyphs after scaling, as a ratio of the font UPM (1.0 = one full em). Positive values shift western glyphs downward. |
+| `cjk_offset_y` | float (UPM ratio) | `0.0` | Additional vertical offset applied to CJK glyphs after all CJK processing, as a ratio of the font UPM (1.0 = one full em). Positive values shift CJK glyphs upward. |
+| `western_offset_y` | float (UPM ratio) | `0.0` | Additional vertical offset applied to western glyphs after scaling, as a ratio of the font UPM (1.0 = one full em). Positive values shift western glyphs upward. |
 
 ### Full Example
 
