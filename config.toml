@@ -21,6 +21,12 @@ mark_as_monospace = true
 remove_hints      = true
 adjust_baseline   = true
 
+# Symbol font overlays applied to every subfamily.
+symbol_fonts = [
+    "~/Library/Fonts/SymbolsNerdFontMono-Regular.ttf",
+    "FlogSymbols.ttf",
+]
+
 # Characters/ranges to expand to double (fullwidth) advance width.
 # strategy = "stretch"    — scale the outline horizontally
 # strategy = "pad_left"   — pad with whitespace on the left  (glyph stays right)
@@ -37,12 +43,6 @@ strategy = "pad_left"
 [[double_width]]
 chars    = ["\u2019", "\u201d"]   # ’ ”
 strategy = "pad_right"
-
-# Symbol font overlays applied to every subfamily.
-symbol_fonts = [
-    "~/Library/Fonts/SymbolsNerdFont-Regular.ttf",
-    "FlogSymbols.ttf",
-]
 
 
 # ---------------------------------------------------------------------------
