@@ -18,7 +18,7 @@ author      = "Zhaosheng Pan"
 description = ""
 
 mark_as_monospace = true
-remove_hints      = true
+remove_hints      = false
 adjust_baseline   = true
 
 # Symbol font overlays applied to every subfamily.

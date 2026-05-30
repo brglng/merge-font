@@ -22,7 +22,6 @@ from fontTools.ttLib.tables.ttProgram import Program as TTProgram
 
 from merge_font.config import load_families
 from merge_font.types import (
-    DoubleWidthConfig,
     DoubleWidthStrategy,
     FontFamilySpec,
     FontMergeConfig,
@@ -297,20 +296,22 @@ def copy_glyph_into(
     scale_y: float,
     y_offset: int = 0,
     apply_y_offset: bool = False,
+    copy_hints: bool = True,
 ) -> None:
     """Deep-copy one glyph (outline + metrics) from *src* into *dst*.
 
     The outline is scaled by (*scale_x*, *scale_y*) and, when
     *apply_y_offset* is ``True``, shifted vertically by *y_offset*.
     The glyph is registered in ``dst_font.glyphOrder`` if not already present.
+
+    When *copy_hints* is ``False``, per-glyph bytecode programs are stripped
+    from the copied glyph.
     """
     if src_name in src_tables.glyf:
         copied = copy.deepcopy(src_tables.glyf[src_name])
-        # Drop instructions: they reference the source font's fpgm/prep/cvt
-        # tables, which are not present in the destination font.  Leaving
-        # them in would produce invalid bytecode at render time.
-        if hasattr(copied, "program"):
+        if not copy_hints and hasattr(copied, "program"):
             copied.program = TTProgram()
+
         GlyphTransformer.scale(copied, scale_x, scale_y)
         if apply_y_offset:
             GlyphTransformer.shift_vertical(copied, y_offset)
@@ -653,10 +654,23 @@ def stretch_glyph_width(
 # ---------------------------------------------------------------------------
 
 
+def copy_hinting_tables(src_font: TTFont, dst_font: TTFont) -> None:
+    """Copy global TrueType hinting tables from *src_font* into *dst_font*.
+
+    Copies ``fpgm``, ``prep``, and ``cvt `` if they exist in the source and
+    are not already present in the destination.  These tables are required
+    for per-glyph bytecode programs to execute correctly.
+    """
+    for tag in ("fpgm", "prep", "cvt "):
+        if tag in src_font and tag not in dst_font:
+            dst_font[tag] = copy.deepcopy(src_font[tag])
+
+
 def copy_cjk_glyphs_to_base(
     base_font: TTFont,
     cjk_font: TTFont,
     cjk_upm_scale: float,
+    copy_hints: bool = True,
 ) -> None:
     """Phase 1 — Deep-copy every CJK glyph (and its dependencies) from the CJK
     font into the base font, applying UPM scaling.
@@ -683,6 +697,7 @@ def copy_cjk_glyphs_to_base(
             copy_glyph_into(
                 cjk_tables, base_tables, dep_name, new_dep_name, base_font,
                 scale_x=cjk_upm_scale, scale_y=cjk_upm_scale,
+                copy_hints=copy_hints,
             )
 
             # Rename component references to use the cjk_ prefix.
@@ -779,6 +794,7 @@ def merge_cjk_glyphs(
     y_offset: int,
     cjk_scale: float = 1.0,
     stretch_pad_codepoints: set[int] | None = None,
+    copy_hints: bool = True,
 ) -> None:
     """Copy CJK glyphs into the base font and adjust their advance widths.
 
@@ -799,7 +815,9 @@ def merge_cjk_glyphs(
         baseline alignment component and the user-specified
         ``cjk_offset_y``.
     """
-    copy_cjk_glyphs_to_base(base_font, cjk_font, cjk_upm_scale)
+    if copy_hints:
+        copy_hinting_tables(cjk_font, base_font)
+    copy_cjk_glyphs_to_base(base_font, cjk_font, cjk_upm_scale, copy_hints=copy_hints)
     adjust_cjk_glyph_widths(
         base_font, cjk_font, target_adv_w, target_adv_c,
         cjk_upm_scale,
@@ -824,14 +842,16 @@ def merge_cjk_glyphs(
 def merge_symbols_into_font(
     base_font: TTFont,
     symbol_font: TTFont,
-    target_adv_w: int,
+    copy_hints: bool = True,
 ) -> None:
-    """Overlay a symbol font onto the base font, scaling by UPM ratio.
+    """Overlay a symbol font onto the base font, scaling uniformly.
 
-    Existing glyphs are overwritten when names collide.  Every top-level
-    symbol glyph's advance width is forced to *target_adv_w* after copying,
-    ensuring a consistent halfwidth advance for all non-CJK glyphs.
+    Existing glyphs are overwritten when names collide.  Symbol glyphs are
+    uniformly scaled by ``upm / symbol_upm * western_scale_y`` so that they
+    match the vertical proportions of the western glyphs.
     """
+    if copy_hints:
+        copy_hinting_tables(symbol_font, base_font)
     base_cmap = base_font.getBestCmap()
     symbol_cmap = symbol_font.getBestCmap()
     base_tables = FontTables.from_font(base_font)
@@ -840,6 +860,9 @@ def merge_symbols_into_font(
         hmtx=symbol_font["hmtx"],
         vmtx=symbol_font["vmtx"] if "vmtx" in base_font and "vmtx" in symbol_font else None,
     )
+
+    # Uniform scale: UPM normalisation combined with the western vertical
+    # adjustment so symbol glyphs match the scaled western text height.
     scale = base_font["head"].unitsPerEm / symbol_font["head"].unitsPerEm
 
     for codepoint, sym_glyph_name in symbol_cmap.items():
@@ -847,14 +870,9 @@ def merge_symbols_into_font(
             copy_glyph_into(
                 sym_tables, base_tables, dep_name, dep_name, base_font,
                 scale_x=scale, scale_y=scale,
+                copy_hints=copy_hints,
             )
         base_cmap[codepoint] = sym_glyph_name
-
-        # Force the top-level glyph's advance to the target halfwidth value.
-        if target_adv_w > 0 and sym_glyph_name in base_tables.hmtx.metrics:
-            adv, lsb = base_tables.hmtx.metrics[sym_glyph_name]
-            if adv != target_adv_w:
-                base_tables.hmtx.metrics[sym_glyph_name] = (target_adv_w, lsb)
 
 
 # ---------------------------------------------------------------------------
@@ -1098,6 +1116,7 @@ def process_font(
         y_offset=cjk_y_offset,
         cjk_scale=config.cjk_scale,
         stretch_pad_codepoints=stretch_pad_codepoints,
+        copy_hints=not config.remove_hints,
     )
 
     # Apply double-width rules: stretch or pad each glyph to target_adv_c.
@@ -1120,11 +1139,10 @@ def process_font(
             if adv != target_adv_c:
                 fullwidth_tables.hmtx.metrics[glyph_name] = (target_adv_c, lsb)
 
-    # Merge symbol fonts, normalising each symbol glyph's advance to
-    # target_adv_w so that all non-CJK glyphs end up with the same
-    # halfwidth cell.
+    # Merge symbol fonts, scaling uniformly by upm/symbol_upm * western_scale_y
+    # so symbol glyphs match the western text height.
     for symbol_font in symbol_fonts:
-        merge_symbols_into_font(western_font, symbol_font, target_adv_w=target_adv_w)
+        merge_symbols_into_font(western_font, symbol_font, copy_hints=not config.remove_hints)
 
     # Metadata & monospace flag
     update_font_metadata(western_font, config)
