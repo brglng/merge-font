@@ -838,17 +838,113 @@ def merge_cjk_glyphs(
 # Symbol font merging
 # ---------------------------------------------------------------------------
 
+# Nerd Font patcher ScaleGroups — codepoint groups whose glyphs share a
+# combined bounding box for uniform scaling.  Ported from:
+# https://github.com/ryanoasis/nerd-fonts/blob/master/font-patcher  (lines ~1080-1170)
+#
+# Each entry is (stretch_mode, list_of_groups).
+# stretch_mode:
+#   'pa'  — preserve aspect ratio, scale to fit iconheight (default symbols)
+#   '^pa' — preserve aspect ratio, scale to fit full line height (powerline)
+#   '^xy' — stretch to fill full cell in both axes (box drawing, powerline arrows)
+#
+# Within each group, all glyphs share the same scale factor derived from their
+# combined bounding box.
 
-def merge_symbols_into_font(
+# Powerline symbols: scale to full cell height
+# https://github.com/ryanoasis/nerd-fonts/blob/master/font-patcher#L1183-L1188
+NF_POWERLINE_RANGES: list[tuple[int, int]] = [
+    (0xE0A0, 0xE0A2),
+    (0xE0B0, 0xE0B3),
+    (0xE0A3, 0xE0A3),
+    (0xE0B4, 0xE0C8),
+    (0xE0CA, 0xE0CA),
+    (0xE0CC, 0xE0D7),
+]
+
+# Box Drawing + Block Elements: stretch to fill full cell
+# https://github.com/ryanoasis/nerd-fonts/blob/master/font-patcher#L1180
+NF_BOX_DRAWING_RANGES: list[tuple[int, int]] = [
+    (0x2500, 0x259F),
+]
+
+# Progress indicators: scale to full cell height, preserve aspect ratio
+# https://github.com/ryanoasis/nerd-fonts/blob/master/font-patcher#L1181
+NF_PROGRESS_RANGES: list[tuple[int, int]] = [
+    (0xEE00, 0xEE0B),
+]
+
+# Heavy Angle Brackets
+# https://github.com/ryanoasis/nerd-fonts/blob/master/font-patcher#L1179
+NF_HEAVY_ANGLE_RANGES: list[tuple[int, int]] = [
+    (0x276C, 0x2771),
+]
+
+# Braille patterns: no scaling at all (already generated at correct size)
+# https://github.com/ryanoasis/nerd-fonts/blob/master/font-patcher#L1204
+NF_BRAILLE_RANGES: list[tuple[int, int]] = [
+    (0x2800, 0x28FF),
+]
+
+# Pre-built sets for O(1) lookup
+NF_POWERLINE_SET: set[int] = set()
+for _s, _e in NF_POWERLINE_RANGES:
+    NF_POWERLINE_SET.update(range(_s, _e + 1))
+
+NF_BOX_DRAWING_SET: set[int] = set()
+for _s, _e in NF_BOX_DRAWING_RANGES:
+    NF_BOX_DRAWING_SET.update(range(_s, _e + 1))
+
+NF_PROGRESS_SET: set[int] = set()
+for _s, _e in NF_PROGRESS_RANGES:
+    NF_PROGRESS_SET.update(range(_s, _e + 1))
+
+NF_HEAVY_ANGLE_SET: set[int] = set()
+for _s, _e in NF_HEAVY_ANGLE_RANGES:
+    NF_HEAVY_ANGLE_SET.update(range(_s, _e + 1))
+
+NF_BRAILLE_SET: set[int] = set()
+for _s, _e in NF_BRAILLE_RANGES:
+    NF_BRAILLE_SET.update(range(_s, _e + 1))
+
+
+def _get_glyph_bbox(glyf_table: Any, glyph_name: str) -> tuple[int, int, int, int] | None:
+    """Return (xMin, yMin, xMax, yMax) for a glyph, or None if empty."""
+    if glyph_name not in glyf_table:
+        return None
+    g = glyf_table[glyph_name]
+    if not hasattr(g, "xMin") or g.xMin is None or g.numberOfContours == 0:
+        return None
+    return (g.xMin, g.yMin, g.xMax, g.yMax)
+
+
+def merge_nerd_font(
     base_font: TTFont,
     symbol_font: TTFont,
+    mono: bool = True,
     copy_hints: bool = True,
 ) -> None:
-    """Overlay a symbol font onto the base font, scaling uniformly.
+    """Merge Nerd Font symbols using per-glyph scaling strategies matching
+    the upstream Nerd Font patcher.
 
-    Existing glyphs are overwritten when names collide.  Symbol glyphs are
-    uniformly scaled by ``upm / symbol_upm * western_scale_y`` so that they
-    match the vertical proportions of the western glyphs.
+    Scaling strategy (from font-patcher get_scale_factors / get_sourcefont_dimensions):
+    https://github.com/ryanoasis/nerd-fonts/blob/master/font-patcher#L1453-L1487
+
+    When *mono* is True (Nerd Font Mono / ``--single``):
+    - Default glyphs ('pa'): preserve aspect ratio, scale each glyph's bounding
+      box to fit within (cell_width, icon_height) where
+      icon_height = (capHeight * 2 + line_height) / 3.
+
+    When *mono* is False (Nerd Font / non-mono):
+    - Default glyphs ('pa'): preserve aspect ratio, scale to fit within
+      (cell_width, line_height).  Icons can be taller (full line height)
+      but still constrained to single cell width since output is monospace.
+
+    Common to both modes:
+    - Powerline / Heavy Angle / Progress ('^pa'): preserve aspect ratio,
+      fit within (cell_width, full line_height).
+    - Box Drawing ('^xy'): stretch independently in X and Y to fill the full cell.
+    - Braille: no scaling (copied at UPM ratio only).
     """
     if copy_hints:
         copy_hinting_tables(symbol_font, base_font)
@@ -861,18 +957,196 @@ def merge_symbols_into_font(
         vmtx=symbol_font["vmtx"] if "vmtx" in base_font and "vmtx" in symbol_font else None,
     )
 
-    # Uniform scale: UPM normalisation combined with the western vertical
-    # adjustment so symbol glyphs match the scaled western text height.
-    scale = base_font["head"].unitsPerEm / symbol_font["head"].unitsPerEm
+    # Destination font dimensions (mirrors font-patcher get_sourcefont_dimensions)
+    # https://github.com/ryanoasis/nerd-fonts/blob/master/font-patcher#L1309-L1359
+    base_os2 = base_font["OS/2"]
+    line_height = float(base_os2.sTypoAscender - base_os2.sTypoDescender)
+    cap_height = float(
+        base_os2.sCapHeight
+        if hasattr(base_os2, "sCapHeight") and base_os2.sCapHeight > 0
+        else int(line_height)
+    )
+    # icon_height: the target vertical size for normal ('pa') symbols
+    # In mono mode: (capHeight * 2 + line_height) / 3  (prevents overly tall icons)
+    # In non-mono mode: full line_height
+    # https://github.com/ryanoasis/nerd-fonts/blob/master/font-patcher#L1354-L1359
+    if mono:
+        icon_height = (cap_height * 2 + line_height) / 3.0
+    else:
+        icon_height = line_height
+    cell_width = float(get_typical_advance(base_font, ord("A")))
+    # Vertical center of the destination cell
+    cell_center_y = (base_os2.sTypoAscender + base_os2.sTypoDescender) / 2.0
 
+    # UPM ratio for braille (no other scaling)
+    upm_scale = base_font["head"].unitsPerEm / float(symbol_font["head"].unitsPerEm)
+
+    # Copy all dependency glyphs first at 1:1 (they'll be scaled via their parent)
     for codepoint, sym_glyph_name in symbol_cmap.items():
         for dep_name in get_glyph_dependencies(sym_glyph_name, sym_tables.glyf):
-            copy_glyph_into(
-                sym_tables, base_tables, dep_name, dep_name, base_font,
-                scale_x=scale, scale_y=scale,
-                copy_hints=copy_hints,
-            )
+            if dep_name not in base_tables.glyf:
+                copy_glyph_into(
+                    sym_tables, base_tables, dep_name, dep_name, base_font,
+                    scale_x=upm_scale, scale_y=upm_scale,
+                    copy_hints=copy_hints,
+                )
+
+    # Recalculate bounding boxes for copied symbol glyphs so that
+    # _get_glyph_bbox returns correct post-scale dimensions.
+    for codepoint, sym_glyph_name in symbol_cmap.items():
+        for dep_name in get_glyph_dependencies(sym_glyph_name, sym_tables.glyf):
+            if dep_name in base_tables.glyf:
+                g = base_tables.glyf[dep_name]
+                if hasattr(g, 'recalcBounds'):
+                    g.recalcBounds(base_tables.glyf)
+
+    # Now scale each top-level symbol glyph according to its category
+    for codepoint, sym_glyph_name in symbol_cmap.items():
         base_cmap[codepoint] = sym_glyph_name
+
+        if sym_glyph_name not in base_tables.glyf:
+            continue
+
+        # Braille: no additional scaling beyond UPM normalisation
+        if codepoint in NF_BRAILLE_SET:
+            continue
+
+        bbox = _get_glyph_bbox(base_tables.glyf, sym_glyph_name)
+        if bbox is None:
+            continue
+        xmin, ymin, xmax, ymax = bbox
+        glyph_width = float(xmax - xmin) if xmax > xmin else 1.0
+        glyph_height = float(ymax - ymin) if ymax > ymin else 1.0
+
+        if codepoint in NF_BOX_DRAWING_SET:
+            # '^xy': stretch to fill full cell in both axes (always single cell)
+            scale_x = cell_width / glyph_width
+            scale_y = line_height / glyph_height
+            target_advance = int(round(cell_width))
+        elif codepoint in NF_POWERLINE_SET or codepoint in NF_HEAVY_ANGLE_SET or codepoint in NF_PROGRESS_SET:
+            # '^pa': preserve aspect, fit within (cell_width, full line_height)
+            # Powerline symbols always use single cell width for terminal compat.
+            scale_x = min(cell_width / glyph_width, line_height / glyph_height)
+            scale_y = scale_x
+            target_advance = int(round(cell_width))
+        else:
+            # 'pa': preserve aspect ratio
+            # Mono mode: fit within (cell_width, icon_height), scale freely
+            # Non-mono mode: fit within (2*cell_width, line_height), cap at 1.0
+            #   Icons get double-cell advance (like CJK characters).
+            if mono:
+                scale_x = min(cell_width / glyph_width, icon_height / glyph_height)
+                scale_y = scale_x
+                target_advance = int(round(cell_width))
+            else:
+                target_width = 2.0 * cell_width
+                scale_x = min(target_width / glyph_width, line_height / glyph_height)
+                # Non-mono: never scale up (cap at 1.0)
+                scale_x = min(scale_x, 1.0)
+                scale_y = scale_x
+                target_advance = int(round(2.0 * cell_width))
+
+        # Apply scaling
+        glyph = base_tables.glyf[sym_glyph_name]
+        GlyphTransformer.scale(glyph, scale_x, scale_y)
+
+        # Update metrics and centre glyph within target advance
+        if sym_glyph_name in base_tables.hmtx.metrics:
+            old_adv, old_lsb = base_tables.hmtx.metrics[sym_glyph_name]
+            new_lsb = int(round(old_lsb * scale_x))
+            # Centre the scaled glyph within the target advance cell
+            scaled_width = glyph_width * scale_x
+            shift_x = int(round((target_advance - scaled_width) / 2.0)) - new_lsb
+            if shift_x:
+                GlyphTransformer.shift_horizontal(glyph, shift_x)
+                new_lsb += shift_x
+            base_tables.hmtx.metrics[sym_glyph_name] = (target_advance, new_lsb)
+
+
+def merge_flog_symbols(
+    base_font: TTFont,
+    symbol_font: TTFont,
+    copy_hints: bool = True,
+) -> None:
+    """Merge Flog Symbols font, scaling each glyph to fill the full line height.
+
+    Unlike Nerd Font symbols which use per-category strategies, Flog Symbols
+    are always scaled uniformly (preserve aspect ratio) to fill the full
+    typographic line height (sTypoAscender − sTypoDescender).
+    """
+    if copy_hints:
+        copy_hinting_tables(symbol_font, base_font)
+    base_cmap = base_font.getBestCmap()
+    symbol_cmap = symbol_font.getBestCmap()
+    base_tables = FontTables.from_font(base_font)
+    sym_tables = FontTables(
+        glyf=symbol_font["glyf"],
+        hmtx=symbol_font["hmtx"],
+        vmtx=symbol_font["vmtx"] if "vmtx" in base_font and "vmtx" in symbol_font else None,
+    )
+
+    base_os2 = base_font["OS/2"]
+    line_height = float(base_os2.sTypoAscender - base_os2.sTypoDescender)
+    cell_width = float(get_typical_advance(base_font, ord("A")))
+    upm_scale = base_font["head"].unitsPerEm / float(symbol_font["head"].unitsPerEm)
+
+    # Copy all glyphs at UPM ratio first
+    for codepoint, sym_glyph_name in symbol_cmap.items():
+        for dep_name in get_glyph_dependencies(sym_glyph_name, sym_tables.glyf):
+            if dep_name not in base_tables.glyf:
+                copy_glyph_into(
+                    sym_tables, base_tables, dep_name, dep_name, base_font,
+                    scale_x=upm_scale, scale_y=upm_scale,
+                    copy_hints=copy_hints,
+                )
+
+    # Recalculate bounding boxes for copied symbol glyphs so that
+    # _get_glyph_bbox returns correct post-scale dimensions.
+    for codepoint, sym_glyph_name in symbol_cmap.items():
+        for dep_name in get_glyph_dependencies(sym_glyph_name, sym_tables.glyf):
+            if dep_name in base_tables.glyf:
+                g = base_tables.glyf[dep_name]
+                if hasattr(g, 'recalcBounds'):
+                    g.recalcBounds(base_tables.glyf)
+
+    # Compute a uniform scale factor from the tallest symbol so that all
+    # Flog glyphs maintain consistent relative proportions.
+    max_height = 0.0
+    for codepoint, sym_glyph_name in symbol_cmap.items():
+        if sym_glyph_name not in base_tables.glyf:
+            continue
+        bbox = _get_glyph_bbox(base_tables.glyf, sym_glyph_name)
+        if bbox is None:
+            continue
+        _, ymin, _, ymax = bbox
+        h = float(ymax - ymin) if ymax > ymin else 0.0
+        if h > max_height:
+            max_height = h
+
+    # The uniform scale fits the tallest glyph within the line height.
+    # (cell_width is not the constraining dimension for Flog Symbols since
+    # they are designed as narrow git-graph line segments.)
+    scale = line_height / max_height if max_height > 0 else 1.0
+
+    # Apply the uniform scale to every glyph and centre within cell_width.
+    for codepoint, sym_glyph_name in symbol_cmap.items():
+        base_cmap[codepoint] = sym_glyph_name
+
+        if sym_glyph_name not in base_tables.glyf:
+            continue
+
+        bbox = _get_glyph_bbox(base_tables.glyf, sym_glyph_name)
+        if bbox is None:
+            continue
+
+        glyph = base_tables.glyf[sym_glyph_name]
+        GlyphTransformer.scale(glyph, scale, scale)
+
+        if sym_glyph_name in base_tables.hmtx.metrics:
+            old_adv, old_lsb = base_tables.hmtx.metrics[sym_glyph_name]
+            new_adv = int(round(cell_width))
+            new_lsb = int(round(old_lsb * scale))
+            base_tables.hmtx.metrics[sym_glyph_name] = (new_adv, new_lsb)
 
 
 # ---------------------------------------------------------------------------
@@ -1030,7 +1304,8 @@ def process_font(
     scaling: ScalingParams,
     western_font: TTFont,
     cjk_font: TTFont,
-    symbol_fonts: list[TTFont],
+    nerd_font: TTFont | None,
+    flog_symbols_font: TTFont | None,
 ) -> None:
     """Execute the complete font merging pipeline:
 
@@ -1056,8 +1331,10 @@ def process_font(
         Pre-loaded western (Latin) font.  Mutated and saved in place.
     cjk_font :
         Pre-loaded CJK font.  Read-only during this call.
-    symbol_fonts :
-        Pre-loaded symbol fonts.  Read-only during this call.
+    nerd_font :
+        Pre-loaded Nerd Font symbols font, or None.  Read-only.
+    flog_symbols_font :
+        Pre-loaded Flog Symbols font, or None.  Read-only.
     """
 
     upm = scaling.upm
@@ -1074,6 +1351,12 @@ def process_font(
     western_scale = target_adv_w / float(get_typical_advance(western_font, ord("A")))
     total_western_scale_x = western_scale * config.western_scale_x
     total_western_scale_y = western_scale * config.western_scale_y
+
+    # After scale_font, the actual cell width becomes
+    # target_adv_w * western_scale_x.  Adjust target advances so that CJK
+    # and symbol glyphs align to the real cell grid.
+    target_adv_w = int(round(target_adv_w * config.western_scale_x))
+    target_adv_c = 2 * target_adv_w
 
     # Baseline alignment + user-specified Y offsets — all computed before
     # the western font is mutated so the metrics are still in their
@@ -1139,10 +1422,11 @@ def process_font(
             if adv != target_adv_c:
                 fullwidth_tables.hmtx.metrics[glyph_name] = (target_adv_c, lsb)
 
-    # Merge symbol fonts, scaling uniformly by upm/symbol_upm * western_scale_y
-    # so symbol glyphs match the western text height.
-    for symbol_font in symbol_fonts:
-        merge_symbols_into_font(western_font, symbol_font, copy_hints=not config.remove_hints)
+    # Merge symbol fonts with their respective scaling strategies.
+    if nerd_font:
+        merge_nerd_font(western_font, nerd_font, mono=config.nerd_font_mono, copy_hints=not config.remove_hints)
+    if flog_symbols_font:
+        merge_flog_symbols(western_font, flog_symbols_font, copy_hints=not config.remove_hints)
 
     # Metadata & monospace flag
     update_font_metadata(western_font, config)
@@ -1172,12 +1456,18 @@ def process_family(family: FontFamilySpec) -> None:
     family_name = family.name
 
     # Load symbol fonts once; they are read-only across all subfamily runs.
-    symbol_fonts: list[TTFont] = []
-    for sym_path in family.symbol_fonts:
+    nerd_font: TTFont | None = None
+    flog_symbols_font: TTFont | None = None
+    if family.nerd_font:
         try:
-            symbol_fonts.append(load_font(sym_path))
+            nerd_font = load_font(family.nerd_font)
         except (FileNotFoundError, OSError) as err:
-            print(f"  Warning: could not load symbol font {sym_path!r}: {err}")
+            print(f"  Warning: could not load Nerd Font {family.nerd_font!r}: {err}")
+    if family.flog_symbols:
+        try:
+            flog_symbols_font = load_font(family.flog_symbols)
+        except (FileNotFoundError, OSError) as err:
+            print(f"  Warning: could not load Flog Symbols {family.flog_symbols!r}: {err}")
 
     # Load western and CJK fonts for every subfamily.
     loaded: list[tuple[SubfamilySpec, TTFont, TTFont]] = []
@@ -1195,14 +1485,15 @@ def process_family(family: FontFamilySpec) -> None:
         f"[{family_name}]\n"
         f"  Computing scaling from all {len(loaded)} subfamilies ..."
     )
-    scaling = compute_scaling_params([(w, c) for _, w, c in loaded], symbol_fonts)
+    symbol_fonts_for_scaling: list[TTFont] = [f for f in [nerd_font, flog_symbols_font] if f is not None]
+    scaling = compute_scaling_params([(w, c) for _, w, c in loaded], symbol_fonts_for_scaling)
 
     try:
         for spec, western_font, cjk_font in loaded:
             output_filename = make_output_filename(family_name, spec.name)
             # Convert ratio-based offsets (relative to UPM) to font units.
             cjk_offset_y_font_units = int(round(spec.cjk_offset_y * scaling.upm))
-            western_offset_y_font_units = int(round(spec.western_offset_y * scaling.upm))
+            western_offset_y_font_units = int(round(family.western_offset_y * scaling.upm))
             config = FontMergeConfig(
                 double_width=family.double_width,
                 adjust_baseline=family.adjust_baseline,
@@ -1212,9 +1503,10 @@ def process_family(family: FontFamilySpec) -> None:
                 description=family.description,
                 mark_as_monospace=family.mark_as_monospace,
                 cjk_scale=spec.cjk_scale,
-                western_scale_x=spec.western_scale_x,
-                western_scale_y=spec.western_scale_y,
+                western_scale_x=family.western_scale_x,
+                western_scale_y=family.western_scale_y,
                 remove_hints=family.remove_hints,
+                nerd_font_mono=family.nerd_font_mono,
                 cjk_offset_y=cjk_offset_y_font_units,
                 western_offset_y=western_offset_y_font_units,
             )
@@ -1222,7 +1514,7 @@ def process_family(family: FontFamilySpec) -> None:
             try:
                 process_font(config, scaling=scaling,
                              western_font=western_font, cjk_font=cjk_font,
-                             symbol_fonts=symbol_fonts)
+                             nerd_font=nerd_font, flog_symbols_font=flog_symbols_font)
                 print(f"  Saved: {output_filename}")
             except FileNotFoundError as err:
                 print(f"  Error: {err}")
@@ -1230,8 +1522,10 @@ def process_family(family: FontFamilySpec) -> None:
         for _, w_font, c_font in loaded:
             w_font.close()
             c_font.close()
-        for s_font in symbol_fonts:
-            s_font.close()
+        if nerd_font:
+            nerd_font.close()
+        if flog_symbols_font:
+            flog_symbols_font.close()
 
 
 # ---------------------------------------------------------------------------

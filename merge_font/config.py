@@ -59,7 +59,12 @@ _COMMON_KEYS = frozenset({
     "remove_hints",
     "adjust_baseline",
     "double_width",
-    "symbol_fonts",
+    "nerd_font",
+    "flog_symbols",
+    "nerd_font_mono",
+    "western_scale_x",
+    "western_scale_y",
+    "western_offset_y",
 })
 
 
@@ -99,10 +104,6 @@ def _parse_double_width(raw: list[dict]) -> list[DoubleWidthConfig]:
     ]
 
 
-def _expand_paths(paths: list[str]) -> list[str]:
-    """Expand ``~`` and environment variables in a list of path strings."""
-    return [os.path.expandvars(os.path.expanduser(p)) for p in paths]
-
 
 def _extract_common(data: dict) -> dict:
     """Pull every recognised common key out of *data* and return them as a dict."""
@@ -117,13 +118,13 @@ def _build_family_spec(name: str, merged: dict) -> FontFamilySpec:
             western_font=os.path.expandvars(os.path.expanduser(spec["western_font"])),
             cjk_font=os.path.expandvars(os.path.expanduser(spec["cjk_font"])),
             cjk_scale=float(spec.get("cjk_scale", 1.0)),
-            western_scale_x=float(spec.get("western_scale_x", 1.0)),
-            western_scale_y=float(spec.get("western_scale_y", 1.0)),
             cjk_offset_y=float(spec.get("cjk_offset_y", 0.0)),
-            western_offset_y=float(spec.get("western_offset_y", 0.0)),
         )
         for spec in merged.get("subfamilies", [])
     ]
+
+    nerd_font_raw = merged.get("nerd_font", "")
+    flog_symbols_raw = merged.get("flog_symbols", "")
 
     return FontFamilySpec(
         name=name,
@@ -132,8 +133,13 @@ def _build_family_spec(name: str, merged: dict) -> FontFamilySpec:
         mark_as_monospace=bool(merged.get("mark_as_monospace", True)),
         adjust_baseline=bool(merged.get("adjust_baseline", True)),
         double_width=_parse_double_width(merged.get("double_width", [])),
-        symbol_fonts=_expand_paths(merged.get("symbol_fonts", [])),
+        nerd_font=os.path.expandvars(os.path.expanduser(nerd_font_raw)) if nerd_font_raw else "",
+        flog_symbols=os.path.expandvars(os.path.expanduser(flog_symbols_raw)) if flog_symbols_raw else "",
+        nerd_font_mono=bool(merged.get("nerd_font_mono", True)),
         remove_hints=bool(merged.get("remove_hints", False)),
+        western_scale_x=float(merged.get("western_scale_x", 1.0)),
+        western_scale_y=float(merged.get("western_scale_y", 1.0)),
+        western_offset_y=float(merged.get("western_offset_y", 0.0)),
         subfamilies=subfamilies,
     )
 

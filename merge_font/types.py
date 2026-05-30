@@ -109,6 +109,7 @@ class FontMergeConfig:
     western_scale_x: float
     western_scale_y: float
     remove_hints: bool
+    nerd_font_mono: bool = True
     cjk_offset_y: int = 0
     western_offset_y: int = 0
 
@@ -156,42 +157,26 @@ class SubfamilySpec:
     ----------
     name : str
         Subfamily name (e.g. ``"Regular"``, ``"Bold Italic"``).
-    western_font_path : str
+    western_font : str
         Path to the western (Latin) font for this subfamily.
-    cjk_font_path : str
+    cjk_font : str
         Path to the CJK font for this subfamily.  Italic subfamilies may
         point to a different typeface than the upright ones.
     cjk_scale : float
         Uniform scale applied to CJK glyphs after UPM normalisation.
-    western_scale_x : float
-        Additional X-axis scale applied to western glyphs after the uniform
-        'A'-advance normalisation.  May be larger or smaller than 1.0.
-        Defaults to 1.0 (no extra horizontal scaling).
-    western_scale_y : float
-        Additional Y-axis scale applied to western glyphs after the uniform
-        'A'-advance normalisation.  May be larger or smaller than 1.0.
-        Defaults to 1.0 (no extra vertical scaling).
     cjk_offset_y : float
         Additional vertical offset applied to CJK glyphs **after** all CJK
-        processing (UPM scaling, cjk\_scale, baseline alignment).  Expressed
+        processing (UPM scaling, cjk_scale, baseline alignment).  Expressed
         as a ratio relative to the font UPM (1.0 = one full em).  Positive
         values shift CJK glyphs downward.  Defaults to 0.0 (no additional
         offset).
-    western_offset_y : float
-        Additional vertical offset applied to western glyphs **after** the
-        western font has been scaled.  Expressed as a ratio relative to the
-        font UPM (1.0 = one full em).  Positive values shift western glyphs
-        downward.  Defaults to 0.0 (no additional offset).
     """
 
     name: str
     western_font: str
     cjk_font: str
     cjk_scale: float = 1.0
-    western_scale_x: float = 1.0
-    western_scale_y: float = 1.0
     cjk_offset_y: float = 0.0
-    western_offset_y: float = 0.0
 
 
 @dataclass
@@ -218,11 +203,29 @@ class FontFamilySpec:
         Auto-align CJK baseline to the western baseline.
     double_width : list[DoubleWidthConfig]
         Rules for expanding characters to double (fullwidth) advance width.
-    symbol_fonts : list[str]
-        Paths to symbol fonts to overlay.
+    nerd_font : str
+        Path to the Nerd Font symbols font (e.g. SymbolsNerdFont-Regular.ttf).
+        Empty string means no Nerd Font overlay.
+    nerd_font_mono : bool
+        When True, use Nerd Font Mono scaling (limit icon height to a weighted
+        average of capHeight and line height, constrain all glyphs to single
+        cell width).  When False, use Nerd Font (non-mono) scaling (icons can
+        use full line height and double-width cells).
+    flog_symbols : str
+        Path to the Flog Symbols font (e.g. FlogSymbols.ttf).
+        Empty string means no Flog Symbols overlay.
     remove_hints : bool
         Strip all hinting data (``fpgm``, ``prep``, ``cvt ``, per-glyph
         programs, and hint-dependent metric tables) from the output fonts.
+    western_scale_x : float
+        Additional X-axis scale applied to western glyphs after the uniform
+        'A'-advance normalisation.  Defaults to 1.0.
+    western_scale_y : float
+        Additional Y-axis scale applied to western glyphs after the uniform
+        'A'-advance normalisation.  Defaults to 1.0.
+    western_offset_y : float
+        Vertical offset applied to western glyphs, expressed as a ratio
+        relative to the font UPM.  Defaults to 0.0.
     subfamilies : list[SubfamilySpec]
         Ordered list of per-subfamily settings.
     """
@@ -233,6 +236,11 @@ class FontFamilySpec:
     mark_as_monospace: bool
     adjust_baseline: bool
     double_width: list[DoubleWidthConfig]
-    symbol_fonts: list[str]
+    nerd_font: str
+    flog_symbols: str
+    nerd_font_mono: bool
     remove_hints: bool
+    western_scale_x: float
+    western_scale_y: float
+    western_offset_y: float
     subfamilies: list[SubfamilySpec]
