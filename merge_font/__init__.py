@@ -1054,13 +1054,21 @@ def merge_nerd_font(
         if sym_glyph_name in base_tables.hmtx.metrics:
             old_adv, old_lsb = base_tables.hmtx.metrics[sym_glyph_name]
             new_lsb = int(round(old_lsb * scale_x))
-            # Centre the scaled glyph within the target advance cell
+            # Centre the scaled glyph horizontally within the target advance cell
             scaled_width = glyph_width * scale_x
             shift_x = int(round((target_advance - scaled_width) / 2.0)) - new_lsb
             if shift_x:
                 GlyphTransformer.shift_horizontal(glyph, shift_x)
                 new_lsb += shift_x
             base_tables.hmtx.metrics[sym_glyph_name] = (target_advance, new_lsb)
+
+        # Centre the scaled glyph vertically within the line height
+        scaled_ymin = ymin * scale_y
+        scaled_ymax = ymax * scale_y
+        scaled_center_y = (scaled_ymin + scaled_ymax) / 2.0
+        shift_y = int(round(cell_center_y - scaled_center_y))
+        if shift_y:
+            GlyphTransformer.shift_vertical(glyph, shift_y)
 
 
 def merge_flog_symbols(
