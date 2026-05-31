@@ -166,7 +166,7 @@ uv tool uninstall merge-font
 | `adjust_baseline` | 布林值 | `true` | 自動將 CJK 基線對齊到西文基線。 |
 | `remove_hints` | 布林值 | `false` | 從輸出中剥離所有 TrueType 提示資料。 |
 | `nerd_font` | 字串 | `""` | Nerd Font 符號字型路徑（如 `SymbolsNerdFont-Regular.ttf`）。空字串表示停用。 |
-| `nerd_font_mono` | 布林值 | `true` | 為 `true` 時使用 Nerd Font Mono 縮放（圖示限制在單元格寬度和減小高度）；為 `false` 時圖示可使用全行高和雙寬單元格。 |
+| `nerd_font_mono` | 布林值 | `false` | 為 `true` 時使用 Nerd Font Mono 縮放（圖示限制在單元格寬度和減小高度）；為 `false` 時圖示可使用全行高和雙寬單元格。 |
 | `flog_symbols` | 字串 | `""` | Flog Symbols 字型路徑（如 `FlogSymbols.ttf`）。空字串表示停用。 |
 | `western_scale_x` | 浮點數 | `1.0` | 步進寬度標準化後套用於西文字形的額外水平縮放。 |
 | `western_scale_y` | 浮點數 | `1.0` | 步進寬度標準化後套用於西文字形的額外垂直縮放。 |

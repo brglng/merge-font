@@ -188,7 +188,7 @@ levels:
 | `adjust_baseline` | bool | `true` | Auto-align the CJK baseline to the western baseline. |
 | `remove_hints` | bool | `false` | Strip all TrueType hinting data from the output. |
 | `nerd_font` | string | `""` | Path to the Nerd Font symbols font (e.g. `SymbolsNerdFont-Regular.ttf`). Empty string disables. |
-| `nerd_font_mono` | bool | `true` | When `true`, use Nerd Font Mono scaling (icons limited to single cell width and reduced height). When `false`, icons may use full line height and double-width cells. |
+| `nerd_font_mono` | bool | `false` | When `true`, use Nerd Font Mono scaling (icons limited to single cell width and reduced height). When `false`, icons may use full line height and double-width cells. |
 | `flog_symbols` | string | `""` | Path to the Flog Symbols font (e.g. `FlogSymbols.ttf`). Empty string disables. |
 | `western_scale_x` | float | `1.0` | Additional horizontal scale applied to western glyphs after advance-width normalisation. |
 | `western_scale_y` | float | `1.0` | Additional vertical scale applied to western glyphs after advance-width normalisation. |
