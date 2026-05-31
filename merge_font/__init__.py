@@ -31,30 +31,6 @@ from merge_font.types import (
 
 
 # ---------------------------------------------------------------------------
-# Constants
-# ---------------------------------------------------------------------------
-
-CJK_UNICODE_RANGES = [
-    (0x2000, 0x206F),  # General Punctuation
-    (0x2E80, 0x2EFF),  # CJK Radicals Supplement
-    (0x3000, 0x303F),  # CJK Symbols and Punctuation
-    (0x3200, 0x32FF),  # Enclosed CJK Letters and Months
-    (0x3400, 0x4DBF),  # CJK Unified Ideographs Extension A
-    (0x4E00, 0x9FFF),  # CJK Unified Ideographs
-    (0xFE30, 0xFE4F),  # CJK Compatibility Forms
-    (0xFF00, 0xFFEF),  # Halfwidth and Fullwidth Forms
-]
-
-# Pre-built collections for O(1) membership tests throughout the pipeline.
-CJK_CODEPOINT_SET: set[int] = set()
-CJK_CODEPOINT_LIST: list[int] = []
-for start, end in CJK_UNICODE_RANGES:
-    block = range(start, end + 1)
-    CJK_CODEPOINT_SET.update(block)
-    CJK_CODEPOINT_LIST.extend(block)
-
-
-# ---------------------------------------------------------------------------
 # OTF → TTF conversion
 # ---------------------------------------------------------------------------
 
@@ -133,8 +109,25 @@ def convert_otf_to_ttf(font: TTFont, max_err: float = 1.0) -> None:
 
 
 def load_font(path: str) -> TTFont:
-    """Load a font file, converting CFF outlines to TrueType if necessary."""
-    font = TTFont(path)
+    """Load a font file, converting CFF outlines to TrueType if necessary.
+
+    Raises
+    ------
+    SystemExit
+        When the file cannot be opened (not found, permission denied, or
+        not a valid font file).
+    """
+    try:
+        font = TTFont(path)
+    except FileNotFoundError:
+        print(f"Error: font file not found: {path}")
+        raise SystemExit(1)
+    except PermissionError:
+        print(f"Error: permission denied: {path}")
+        raise SystemExit(1)
+    except Exception as e:
+        print(f"Error: cannot open font file: {path} ({e})")
+        raise SystemExit(1)
     if "glyf" not in font:
         convert_otf_to_ttf(font)
     return font
@@ -672,8 +665,8 @@ def copy_cjk_glyphs_to_base(
     cjk_upm_scale: float,
     copy_hints: bool = True,
 ) -> None:
-    """Phase 1 — Deep-copy every CJK glyph (and its dependencies) from the CJK
-    font into the base font, applying UPM scaling.
+    """Phase 1 — Deep-copy every glyph from the CJK font that is not already
+    present in the base (western) font, applying UPM scaling.
 
     Copied glyphs are prefixed with ``cjk_`` to avoid name collisions.
     """
@@ -682,11 +675,10 @@ def copy_cjk_glyphs_to_base(
     base_tables = FontTables.from_font(base_font)
     cjk_tables = FontTables.from_font(cjk_font)
 
-    for codepoint in CJK_CODEPOINT_LIST:
-        if codepoint not in cjk_cmap:
+    for codepoint, cjk_glyph_name in cjk_cmap.items():
+        # Skip codepoints already covered by the western font.
+        if codepoint in base_cmap:
             continue
-
-        cjk_glyph_name = cjk_cmap[codepoint]
         dependencies = get_glyph_dependencies(cjk_glyph_name, cjk_tables.glyf)
 
         for dep_name in dependencies:
@@ -737,9 +729,6 @@ def adjust_cjk_glyph_widths(
     _stretch_pad = stretch_pad_codepoints or set()
 
     for codepoint, cjk_glyph_name in cjk_cmap.items():
-        if codepoint not in CJK_CODEPOINT_SET:
-            continue
-
         new_glyph_name = f"cjk_{cjk_glyph_name}"
         if new_glyph_name not in base_tables.glyf or new_glyph_name in processed:
             continue
@@ -1467,27 +1456,18 @@ def process_family(family: FontFamilySpec) -> None:
     nerd_font: TTFont | None = None
     flog_symbols_font: TTFont | None = None
     if family.nerd_font:
-        try:
-            nerd_font = load_font(family.nerd_font)
-        except (FileNotFoundError, OSError) as err:
-            print(f"  Warning: could not load Nerd Font {family.nerd_font!r}: {err}")
+        nerd_font = load_font(family.nerd_font)
     if family.flog_symbols:
-        try:
-            flog_symbols_font = load_font(family.flog_symbols)
-        except (FileNotFoundError, OSError) as err:
-            print(f"  Warning: could not load Flog Symbols {family.flog_symbols!r}: {err}")
+        flog_symbols_font = load_font(family.flog_symbols)
 
     # Load western and CJK fonts for every subfamily.
     loaded: list[tuple[SubfamilySpec, TTFont, TTFont]] = []
     for spec in family.subfamilies:
-        try:
-            loaded.append((
-                spec,
-                load_font(spec.western_font),
-                load_font(spec.cjk_font),
-            ))
-        except FileNotFoundError as err:
-            print(f"  Error loading fonts for {spec.name!r}: {err}")
+        loaded.append((
+            spec,
+            load_font(spec.western_font),
+            load_font(spec.cjk_font),
+        ))
 
     print(
         f"[{family_name}]\n"
@@ -1519,13 +1499,10 @@ def process_family(family: FontFamilySpec) -> None:
                 western_offset_y=western_offset_y_font_units,
             )
             print(f"  Processing: {output_filename} ...")
-            try:
-                process_font(config, scaling=scaling,
-                             western_font=western_font, cjk_font=cjk_font,
-                             nerd_font=nerd_font, flog_symbols_font=flog_symbols_font)
-                print(f"  Saved: {output_filename}")
-            except FileNotFoundError as err:
-                print(f"  Error: {err}")
+            process_font(config, scaling=scaling,
+                         western_font=western_font, cjk_font=cjk_font,
+                         nerd_font=nerd_font, flog_symbols_font=flog_symbols_font)
+            print(f"  Saved: {output_filename}")
     finally:
         for _, w_font, c_font in loaded:
             w_font.close()
