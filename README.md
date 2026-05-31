@@ -14,8 +14,9 @@ file.
   western glyph proportions independently on each axis.
 - **Baseline alignment** — automatically centres the CJK typeface on the
   western typographic baseline, with manual offsets for precise adjustment.
-- **Symbol font overlays** — layer icon fonts (e.g. Nerd Font) on top of the
-  merged result.
+- **Symbol font overlays** — layer Nerd Font icons and Flog Symbols on top of
+  the merged result, with per-glyph scaling strategies (preserve aspect ratio,
+  stretch to fill cell, etc.) and both horizontal and vertical centering.
 - **Double-width characters** — stretch or pad selected ASCII punctuation (…,
   —, ‘, ’, etc.) to fill a fullwidth cell.
 - **Metadata customisation** — set the font family name, subfamily, author, and
@@ -37,6 +38,7 @@ file.
   - [double\_width Rules](#double_width-rules)
   - [Symbol Font Overlays](#symbol-font-overlays)
   - [Font Families and Subfamilies](#font-families-and-subfamilies)
+  - [Family-level Settings](#family-level-settings)
   - [Per-subfamily Settings](#per-subfamily-settings)
   - [Full Example](#full-example)
 
@@ -172,7 +174,12 @@ levels:
 | `mark_as_monospace` | bool | `true` | Update `xAvgCharWidth` to indicate a monospaced font. |
 | `adjust_baseline` | bool | `true` | Auto-align the CJK baseline to the western baseline. |
 | `remove_hints` | bool | `false` | Strip all TrueType hinting data from the output. |
-| `symbol_fonts` | list of paths | `[]` | Symbol fonts to overlay on every subfamily output. |
+| `nerd_font` | string | `""` | Path to the Nerd Font symbols font (e.g. `SymbolsNerdFont-Regular.ttf`). Empty string disables. |
+| `nerd_font_mono` | bool | `true` | When `true`, use Nerd Font Mono scaling (icons limited to single cell width and reduced height). When `false`, icons may use full line height and double-width cells. |
+| `flog_symbols` | string | `""` | Path to the Flog Symbols font (e.g. `FlogSymbols.ttf`). Empty string disables. |
+| `western_scale_x` | float | `1.0` | Additional horizontal scale applied to western glyphs after advance-width normalisation. |
+| `western_scale_y` | float | `1.0` | Additional vertical scale applied to western glyphs after advance-width normalisation. |
+| `western_offset_y` | float (UPM ratio) | `0.0` | Additional vertical offset applied to western glyphs, as a ratio of the font UPM. Positive values shift upward. |
 | `[[double_width]]` | array of tables | `[]` | Rules for widening glyphs to a fullwidth cell. |
 
 All of these keys can be overridden inside any ``[[families]]`` block.
@@ -203,16 +210,30 @@ The `chars` list accepts three element types:
 
 ### Symbol Font Overlays
 
+Two symbol font overlays are supported, each with its own scaling strategy:
+
 ```toml
-symbol_fonts = [
-    "~/Library/Fonts/SymbolsNerdFont-Regular.ttf",
-    "FlogSymbols.ttf",
-]
+nerd_font      = "~/Library/Fonts/SymbolsNerdFont-Regular.ttf"
+nerd_font_mono = false
+flog_symbols   = "FlogSymbols.ttf"
 ```
 
-Each listed font is overlaid on top of the merged result. Existing glyphs are
-overwritten when names collide. Every symbol glyph's advance width is
-normalised to the halfwidth cell.
+**Nerd Font** symbols are scaled using per-category strategies matching the
+upstream Nerd Font patcher:
+- **Default glyphs** — preserve aspect ratio, fit within the cell (height
+  limited in mono mode).
+- **Powerline / Heavy Angle / Progress** — preserve aspect ratio, scale to
+  full line height.
+- **Box Drawing / Block Elements** — stretch independently in X and Y to fill
+  the full cell.
+- **Braille** — no additional scaling (UPM normalisation only).
+
+All Nerd Font glyphs are centered both horizontally and vertically within their
+target cell.
+
+**Flog Symbols** are scaled uniformly (preserve aspect ratio) so that the
+tallest glyph fills the full typographic line height, maintaining consistent
+relative proportions across all glyphs.
 
 `~` and environment variables are expanded in all path strings.
 
@@ -226,6 +247,7 @@ under the same family block as `[[families.subfamilies]]` entries:
 ```toml
 [[families]]
 name = "My Font NF"
+western_scale_x = 0.9
 # Optional: override any top-level default for this family only
 # remove_hints = false
 
@@ -245,6 +267,20 @@ cjk_scale    = 1.15
 Output files are saved in the current working directory with names derived from
 the family and subfamily names, e.g. `MyFontNF-Regular.ttf`.
 
+### Family-level Settings
+
+These keys can appear at the top level (as defaults) or inside a `[[families]]`
+block to override the default for that family:
+
+| Key | Type | Default | Description |
+|---|---|---|---|
+| `western_scale_x` | float | `1.0` | Additional horizontal scale applied to western glyphs after advance-width normalisation. Use values below `1.0` to narrow the western text. |
+| `western_scale_y` | float | `1.0` | Additional vertical scale applied to western glyphs after advance-width normalisation. |
+| `western_offset_y` | float (UPM ratio) | `0.0` | Additional vertical offset applied to western glyphs after scaling, as a ratio of the font UPM (1.0 = one full em). Positive values shift western glyphs upward. |
+| `nerd_font` | string | `""` | Path to the Nerd Font symbols font. |
+| `nerd_font_mono` | bool | `true` | Nerd Font scaling mode (mono vs non-mono). |
+| `flog_symbols` | string | `""` | Path to the Flog Symbols font. |
+
 ### Per-subfamily Settings
 
 | Key | Type | Default | Description |
@@ -252,14 +288,10 @@ the family and subfamily names, e.g. `MyFontNF-Regular.ttf`.
 | `western_font` | string | *(required)* | Path to the western (Latin) font file. |
 | `cjk_font` | string | *(required)* | Path to the CJK font file. |
 | `cjk_scale` | float | `1.0` | Uniform scale applied to CJK glyphs after UPM normalisation. Values above `1.0` make CJK characters appear larger relative to the western text. |
-| `western_scale_x` | float | `1.0` | Additional horizontal scale applied to western glyphs after advance-width normalisation. Use values below `1.0` to narrow the western text. |
-| `western_scale_y` | float | `1.0` | Additional vertical scale applied to western glyphs after advance-width normalisation. |
 | `cjk_offset_y` | float (UPM ratio) | `0.0` | Additional vertical offset applied to CJK glyphs after all CJK processing, as a ratio of the font UPM (1.0 = one full em). Positive values shift CJK glyphs upward. |
-| `western_offset_y` | float (UPM ratio) | `0.0` | Additional vertical offset applied to western glyphs after scaling, as a ratio of the font UPM (1.0 = one full em). Positive values shift western glyphs upward. |
 
 ### Full Example
 
 See [`config.toml`](config.toml) for a complete, annotated configuration file
 covering multiple font families with different CJK fonts, scaling factors,
 double-width rules, and Nerd Font symbol overlays.
-

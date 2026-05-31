@@ -9,8 +9,8 @@
 - **2:1 宽度比** — 每个 CJK 字形的步进宽度恰好是西文字形的两倍，符合终端模拟器和代码编辑器的惯例。
 - **可配置缩放** — 精细调整 CJK 字形大小，并可在每个轴上独立调整西文字形比例。
 - **基线对齐** — 自动将 CJK 字面中心对齐西文排版基线，支持手动偏移以进行精确调整。
-- **符号字体叠加** — 在合并结果之上叠加图标字体（如 Nerd Font）。
-- **双宽字符** — 将选定的 ASCII 标点（…、—、'、" 等）拉伸或填充至全角宽度。
+- **符号字体叠加** — 在合并结果之上叠加 Nerd Font 图标和 Flog Symbols，支持每个字形的独立缩放策略（保持宽高比、拉伸填充单元格等），并在水平和垂直方向居中。
+- **双宽字符** — 将选定的 ASCII 标点（…、—、‘、“ 等）拉伸或填充至全角宽度。
 - **元数据自定义** — 设置字体家族名称、子家族、作者和描述。
 - **OTF → TTF 转换** — PostScript 轮廓自动转换为 TrueType 以确保兼容性。
 - **可选的提示信息移除** — 从输出中剥离所有 TrueType 提示数据。
@@ -28,6 +28,7 @@
   - [double\_width 规则](#double_width-规则)
   - [符号字体叠加](#符号字体叠加)
   - [字体家族与子家族](#字体家族与子家族)
+  - [家族级设置](#家族级设置)
   - [每个子家族的设置](#每个子家族的设置)
   - [完整示例](#完整示例)
 
@@ -157,7 +158,12 @@ uv tool uninstall merge-font
 | `mark_as_monospace` | 布尔值 | `true` | 更新 `xAvgCharWidth` 以表明是等宽字体。 |
 | `adjust_baseline` | 布尔值 | `true` | 自动将 CJK 基线对齐到西文基线。 |
 | `remove_hints` | 布尔值 | `false` | 从输出中剥离所有 TrueType 提示数据。 |
-| `symbol_fonts` | 路径列表 | `[]` | 叠加到每个子家族输出上的符号字体。 |
+| `nerd_font` | 字符串 | `""` | Nerd Font 符号字体路径（如 `SymbolsNerdFont-Regular.ttf`）。空字符串表示禁用。 |
+| `nerd_font_mono` | 布尔值 | `true` | 为 `true` 时使用 Nerd Font Mono 缩放（图标限制在单元格宽度和减小高度）；为 `false` 时图标可使用全行高和双宽单元格。 |
+| `flog_symbols` | 字符串 | `""` | Flog Symbols 字体路径（如 `FlogSymbols.ttf`）。空字符串表示禁用。 |
+| `western_scale_x` | 浮点数 | `1.0` | 步进宽度标准化后应用于西文字形的额外水平缩放。 |
+| `western_scale_y` | 浮点数 | `1.0` | 步进宽度标准化后应用于西文字形的额外垂直缩放。 |
+| `western_offset_y` | 浮点数（UPM 比率）| `0.0` | 缩放后应用于西文字形的额外垂直偏移，以字体 UPM 的比率表示。正值向上移动。 |
 | `[[double_width]]` | 表格数组 | `[]` | 将字形扩展为全角宽度的规则。 |
 
 所有这些键都可以在任何 ``[[families]]`` 块中覆盖。
@@ -187,14 +193,23 @@ strategy = "stretch"    # "stretch" | "pad_left" | "center" | "pad_right"
 
 ### 符号字体叠加
 
+支持两种符号字体叠加，各有其独立的缩放策略：
+
 ```toml
-symbol_fonts = [
-    "~/Library/Fonts/SymbolsNerdFont-Regular.ttf",
-    "FlogSymbols.ttf",
-]
+nerd_font      = "~/Library/Fonts/SymbolsNerdFont-Regular.ttf"
+nerd_font_mono = false
+flog_symbols   = "FlogSymbols.ttf"
 ```
 
-每个列出的字体都会叠加到合并结果之上。当名称冲突时，现有字形会被覆盖。每个符号字形的步进宽度都会被标准化为半角宽度。
+**Nerd Font** 符号使用与上游 Nerd Font 补丁程序一致的每类别缩放策略：
+- **默认字形** — 保持宽高比，适应单元格（mono 模式下限制高度）。
+- **Powerline / Heavy Angle / Progress** — 保持宽高比，缩放至全行高。
+- **Box Drawing / Block Elements** — 在 X 和 Y 轴上独立拉伸以填充整个单元格。
+- **Braille** — 无额外缩放（仅 UPM 标准化）。
+
+所有 Nerd Font 字形在其目标单元格内水平和垂直方向均居中。
+
+**Flog Symbols** 统一缩放（保持宽高比），使最高字形填充全行高，保持所有字形之间一致的相对比例。
 
 所有路径字符串中的 `~` 和环境变量都会被展开。
 
@@ -205,6 +220,7 @@ symbol_fonts = [
 ```toml
 [[families]]
 name = "My Font NF"
+western_scale_x = 0.9
 # 可选：仅针对此家族覆盖任何顶层默认值
 # remove_hints = false
 
@@ -223,6 +239,19 @@ cjk_scale    = 1.15
 
 输出文件保存在当前工作目录中，文件名由家族和子家族名称派生，例如 `MyFontNF-Regular.ttf`。
 
+### 家族级设置
+
+这些键可以出现在顶层（作为默认值）或 `[[families]]` 块内以覆盖该家族的默认值：
+
+| 键 | 类型 | 默认值 | 描述 |
+|---|---|---|---|
+| `western_scale_x` | 浮点数 | `1.0` | 步进宽度标准化后应用于西文字形的额外水平缩放。使用小于 `1.0` 的值可收窄西文文本。 |
+| `western_scale_y` | 浮点数 | `1.0` | 步进宽度标准化后应用于西文字形的额外垂直缩放。 |
+| `western_offset_y` | 浮点数（UPM 比率）| `0.0` | 缩放后应用于西文字形的额外垂直偏移，以字体 UPM 的比率表示（1.0 = 一个全 em）。正值将西文字形向上移动。 |
+| `nerd_font` | 字符串 | `""` | Nerd Font 符号字体路径。 |
+| `nerd_font_mono` | 布尔值 | `true` | Nerd Font 缩放模式（mono 或非 mono）。 |
+| `flog_symbols` | 字符串 | `""` | Flog Symbols 字体路径。 |
+
 ### 每个子家族的设置
 
 | 键 | 类型 | 默认值 | 描述 |
@@ -230,10 +259,7 @@ cjk_scale    = 1.15
 | `western_font` | 字符串 | *(必填)* | 西文（拉丁）字体文件路径。 |
 | `cjk_font` | 字符串 | *(必填)* | CJK 字体文件路径。 |
 | `cjk_scale` | 浮点数 | `1.0` | UPM 标准化后应用于 CJK 字形的统一缩放。大于 `1.0` 的值使 CJK 字符相对于西文文本更大。 |
-| `western_scale_x` | 浮点数 | `1.0` | 步进宽度标准化后应用于西文字形的额外水平缩放。使用小于 `1.0` 的值可收窄西文文本。 |
-| `western_scale_y` | 浮点数 | `1.0` | 步进宽度标准化后应用于西文字形的额外垂直缩放。 |
 | `cjk_offset_y` | 浮点数（UPM 比率）| `0.0` | 在所有 CJK 处理后应用于 CJK 字形的额外垂直偏移，以字体 UPM 的比率表示（1.0 = 一个全 em）。正值将 CJK 字形向上移动。 |
-| `western_offset_y` | 浮点数（UPM 比率）| `0.0` | 缩放后应用于西文字形的额外垂直偏移，以字体 UPM 的比率表示（1.0 = 一个全 em）。正值将西文字形向上移动。 |
 
 ### 完整示例
 
