@@ -19,6 +19,10 @@ file.
   stretch to fill cell, etc.) and both horizontal and vertical centering.
 - **Double-width characters** — stretch or pad selected ASCII punctuation (…,
   —, ‘, ’, etc.) to fill a fullwidth cell.
+- **Per-subfamily configuration** — each subfamily (e.g. Regular, Italic, Bold)
+  can use a different CJK font and independent scaling / offset parameters,
+  allowing mix-and-match designs such as pairing a serif CJK font for upright
+  styles with a handwriting CJK font for italics.
 - **Metadata customisation** — set the font family name, subfamily, author, and
   description.
 - **OTF → TTF conversion** — PostScript outlines are automatically converted
