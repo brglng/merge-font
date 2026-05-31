@@ -278,7 +278,7 @@ block to override the default for that family:
 | `western_scale_y` | float | `1.0` | Additional vertical scale applied to western glyphs after advance-width normalisation. |
 | `western_offset_y` | float (UPM ratio) | `0.0` | Additional vertical offset applied to western glyphs after scaling, as a ratio of the font UPM (1.0 = one full em). Positive values shift western glyphs upward. |
 | `nerd_font` | string | `""` | Path to the Nerd Font symbols font. |
-| `nerd_font_mono` | bool | `true` | Nerd Font scaling mode (mono vs non-mono). |
+| `nerd_font_mono` | bool | `false` | Nerd Font scaling mode (mono vs non-mono). |
 | `flog_symbols` | string | `""` | Path to the Flog Symbols font. |
 
 ### Per-subfamily Settings

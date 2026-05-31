@@ -249,7 +249,7 @@ cjk_scale    = 1.15
 | `western_scale_y` | 浮点数 | `1.0` | 步进宽度标准化后应用于西文字形的额外垂直缩放。 |
 | `western_offset_y` | 浮点数（UPM 比率）| `0.0` | 缩放后应用于西文字形的额外垂直偏移，以字体 UPM 的比率表示（1.0 = 一个全 em）。正值将西文字形向上移动。 |
 | `nerd_font` | 字符串 | `""` | Nerd Font 符号字体路径。 |
-| `nerd_font_mono` | 布尔值 | `true` | Nerd Font 缩放模式（mono 或非 mono）。 |
+| `nerd_font_mono` | 布尔值 | `false` | Nerd Font 缩放模式（mono 或非 mono）。 |
 | `flog_symbols` | 字符串 | `""` | Flog Symbols 字体路径。 |
 
 ### 每个子家族的设置

@@ -109,7 +109,7 @@ class FontMergeConfig:
     western_scale_x: float
     western_scale_y: float
     remove_hints: bool
-    nerd_font_mono: bool = True
+    nerd_font_mono: bool = False
     cjk_offset_y: int = 0
     western_offset_y: int = 0
 
