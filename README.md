@@ -27,20 +27,12 @@ file.
 
 ---
 
-## Table of Contents
+## Pre-built Fonts
 
-- [Requirements](#requirements)
-- [Setting Up the Environment with uv](#setting-up-the-environment-with-uv)
-- [Running from the Project Root](#running-from-the-project-root)
-- [Installing Globally and Running from Anywhere](#installing-globally-and-running-from-anywhere)
-- [Configuration File](#configuration-file)
-  - [Top-level Defaults](#top-level-defaults)
-  - [double\_width Rules](#double_width-rules)
-  - [Symbol Font Overlays](#symbol-font-overlays)
-  - [Font Families and Subfamilies](#font-families-and-subfamilies)
-  - [Family-level Settings](#family-level-settings)
-  - [Per-subfamily Settings](#per-subfamily-settings)
-  - [Full Example](#full-example)
+Pre-generated font files are available on the
+[Releases](https://github.com/brglng/merge-font/releases) page. Download the
+latest release archive and install the `.ttf` files directly — no build step
+required.
 
 ---
 
@@ -73,6 +65,23 @@ file.
 ### JetBrains Mono + Noto Sans TC (Regular) / LXGW Bright TC (Italic)
 
 ![JetBrains Noto LXGW TC NF](images/JetBrains%20Noto%20LXGW%20TC%20NF.png)
+
+---
+
+## Table of Contents
+
+- [Requirements](#requirements)
+- [Setting Up the Environment with uv](#setting-up-the-environment-with-uv)
+- [Running from the Project Root](#running-from-the-project-root)
+- [Installing Globally and Running from Anywhere](#installing-globally-and-running-from-anywhere)
+- [Configuration File](#configuration-file)
+  - [Top-level Defaults](#top-level-defaults)
+  - [double\_width Rules](#double_width-rules)
+  - [Symbol Font Overlays](#symbol-font-overlays)
+  - [Font Families and Subfamilies](#font-families-and-subfamilies)
+  - [Family-level Settings](#family-level-settings)
+  - [Per-subfamily Settings](#per-subfamily-settings)
+  - [Full Example](#full-example)
 
 ---
 
