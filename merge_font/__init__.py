@@ -4,7 +4,6 @@ scaling factors, symbol font overlays, and metadata customization.
 Configuration is read from a TOML file (default: ``merge_font.toml`` in the
 current working directory).  Pass ``--config <path>`` to use a different file.
 """
-import argparse
 import copy
 from typing import Any
 
@@ -20,7 +19,6 @@ from fontTools.ttLib.tables._g_l_y_f import (
 from fontTools.ttLib.tables._l_o_c_a import table__l_o_c_a
 from fontTools.ttLib.tables.ttProgram import Program as TTProgram
 
-from merge_font.config import load_families
 from merge_font.types import (
     DoubleWidthStrategy,
     FontFamilySpec,
@@ -1206,18 +1204,16 @@ def compute_y_offsets(
     cjk_scale: float,
     adjust_baseline: bool = True,
     cjk_offset_y: int = 0,
-    western_offset_y: int = 0,
-) -> tuple[int, int]:
-    """Calculate the vertical shifts for CJK and western glyphs.
+) -> int:
+    """Calculate the vertical shift for CJK glyphs.
 
-    Returns ``(cjk_y_offset, western_y_offset)`` — both in font units,
-    ready to be applied as a uniform vertical translation after all scaling
-    steps.
+    Returns the CJK Y offset in font units, ready to be applied as a
+    uniform vertical translation after all scaling steps.
 
     When *adjust_baseline* is ``True`` the baseline alignment component
-    centres the CJK typeface on the western typographic centre.  The per-font
-    manual offsets (*cjk_offset_y* / *western_offset_y*) are added on top
-    regardless of the *adjust_baseline* flag.
+    centres the CJK typeface on the western typographic centre.  The
+    *cjk_offset_y* manual offset is added on top regardless of the
+    *adjust_baseline* flag.
     """
     baseline_shift = 0
     if adjust_baseline:
@@ -1229,9 +1225,7 @@ def compute_y_offsets(
             western_center * western_y_scale
             - cjk_center * cjk_upm_scale * cjk_scale
         ))
-    cjk_y = baseline_shift + cjk_offset_y
-    western_y = western_offset_y
-    return cjk_y, western_y
+    return baseline_shift + cjk_offset_y
 
 
 # ---------------------------------------------------------------------------
@@ -1309,13 +1303,12 @@ def process_font(
     1. Scale the western font to the unified UPM, normalise its 'A' advance
        to ``target_adv_w``, and apply the per-axis ``western_scale_x`` /
        ``western_scale_y`` adjustments — all in a single ``scale_font`` pass.
-    2. Apply ``western_offset_y`` to all non-CJK glyphs.
-    3. Copy CJK glyphs, centre each one within its target cell
+    2. Copy CJK glyphs, centre each one within its target cell
        (fullwidth or halfwidth), then apply the combined baseline-alignment
        and ``cjk_offset_y`` vertical shift.
-    4. Stretch / pad designated western-side glyphs to ``target_adv_c``.
-    5. Overlay symbol fonts.
-    6. Write metadata and save.
+    3. Stretch / pad designated western-side glyphs to ``target_adv_c``.
+    4. Overlay symbol fonts.
+    5. Write metadata and save.
 
     Parameters
     ----------
@@ -1355,15 +1348,14 @@ def process_font(
     target_adv_w = int(round(target_adv_w * config.western_scale_x))
     target_adv_c = 2 * target_adv_w
 
-    # Baseline alignment + user-specified Y offsets — all computed before
+    # Baseline alignment + user-specified CJK Y offset — computed before
     # the western font is mutated so the metrics are still in their
     # original state.
-    cjk_y_offset, western_y_offset = compute_y_offsets(
+    cjk_y_offset = compute_y_offsets(
         western_font, total_western_scale_y, cjk_font, cjk_upm_scale,
         config.cjk_scale,
         adjust_baseline=config.adjust_baseline,
         cjk_offset_y=config.cjk_offset_y,
-        western_offset_y=config.western_offset_y,
     )
 
     # Scale the western font: uniform 'A'-advance normalisation combined with
@@ -1371,13 +1363,6 @@ def process_font(
     if total_western_scale_x != 1.0 or total_western_scale_y != 1.0:
         scale_font(western_font, total_western_scale_x, total_western_scale_y)
     western_font["head"].unitsPerEm = upm
-
-    # Apply western Y offset — shift every non-CJK glyph uniformly.
-    if western_y_offset:
-        western_tables = FontTables.from_font(western_font)
-        for glyph_name in list(western_tables.glyf.keys()):
-            if not glyph_name.startswith("cjk_"):
-                GlyphTransformer.shift_vertical(western_tables.glyf[glyph_name], western_y_offset)
 
     stretch_pad_codepoints = {
         cp for dw in config.double_width for cp in parse_codepoints(dw.chars)
@@ -1481,7 +1466,6 @@ def process_family(family: FontFamilySpec) -> None:
             output_filename = make_output_filename(family_name, spec.name)
             # Convert ratio-based offsets (relative to UPM) to font units.
             cjk_offset_y_font_units = int(round(spec.cjk_offset_y * scaling.upm))
-            western_offset_y_font_units = int(round(family.western_offset_y * scaling.upm))
             config = FontMergeConfig(
                 double_width=family.double_width,
                 adjust_baseline=family.adjust_baseline,
@@ -1496,7 +1480,6 @@ def process_family(family: FontFamilySpec) -> None:
                 remove_hints=family.remove_hints,
                 nerd_font_mono=family.nerd_font_mono,
                 cjk_offset_y=cjk_offset_y_font_units,
-                western_offset_y=western_offset_y_font_units,
             )
             print(f"  Processing: {output_filename} ...")
             process_font(config, scaling=scaling,
@@ -1511,25 +1494,3 @@ def process_family(family: FontFamilySpec) -> None:
             nerd_font.close()
         if flog_symbols_font:
             flog_symbols_font.close()
-
-
-# ---------------------------------------------------------------------------
-# Entry point
-# ---------------------------------------------------------------------------
-
-
-def main() -> None:
-    """Parse arguments, load TOML configuration, and run all merging tasks."""
-    parser = argparse.ArgumentParser(
-        description="Merge western and CJK fonts according to a TOML configuration.",
-    )
-    parser.add_argument(
-        "config",
-        metavar="FILE",
-        help="Path to the TOML configuration file",
-    )
-    args = parser.parse_args()
-
-    families = load_families(args.config)
-    for family in families:
-        process_family(family)

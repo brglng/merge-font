@@ -170,7 +170,6 @@ uv tool uninstall merge-font
 | `flog_symbols` | 字符串 | `""` | Flog Symbols 字体路径（如 `FlogSymbols.ttf`）。空字符串表示禁用。 |
 | `western_scale_x` | 浮点数 | `1.0` | 步进宽度标准化后应用于西文字形的额外水平缩放。 |
 | `western_scale_y` | 浮点数 | `1.0` | 步进宽度标准化后应用于西文字形的额外垂直缩放。 |
-| `western_offset_y` | 浮点数（UPM 比率）| `0.0` | 缩放后应用于西文字形的额外垂直偏移，以字体 UPM 的比率表示。正值向上移动。 |
 | `[[double_width]]` | 表格数组 | `[]` | 将字形扩展为全角宽度的规则。 |
 
 所有这些键都可以在任何 ``[[families]]`` 块中覆盖。
@@ -254,7 +253,6 @@ cjk_scale    = 1.15
 |---|---|---|---|
 | `western_scale_x` | 浮点数 | `1.0` | 步进宽度标准化后应用于西文字形的额外水平缩放。使用小于 `1.0` 的值可收窄西文文本。 |
 | `western_scale_y` | 浮点数 | `1.0` | 步进宽度标准化后应用于西文字形的额外垂直缩放。 |
-| `western_offset_y` | 浮点数（UPM 比率）| `0.0` | 缩放后应用于西文字形的额外垂直偏移，以字体 UPM 的比率表示（1.0 = 一个全 em）。正值将西文字形向上移动。 |
 | `nerd_font` | 字符串 | `""` | Nerd Font 符号字体路径。 |
 | `nerd_font_mono` | 布尔值 | `false` | Nerd Font 缩放模式（mono 或非 mono）。 |
 | `flog_symbols` | 字符串 | `""` | Flog Symbols 字体路径。 |

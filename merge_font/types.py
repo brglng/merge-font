@@ -92,10 +92,6 @@ class FontMergeConfig:
         Additional vertical offset applied to CJK glyphs in font units.
         Computed from the subfamily-level ``cjk_offset_y`` setting (a UPM
         ratio) by multiplying with ``upm``.
-    western_offset_y : float
-        Additional vertical offset applied to western glyphs in font units.
-        Computed from the subfamily-level ``western_offset_y`` setting (a UPM
-        ratio) by multiplying with ``upm``.
     """
 
     double_width: list[DoubleWidthConfig]
@@ -111,7 +107,6 @@ class FontMergeConfig:
     remove_hints: bool
     nerd_font_mono: bool = False
     cjk_offset_y: int = 0
-    western_offset_y: int = 0
 
 
 # ---------------------------------------------------------------------------
@@ -223,9 +218,6 @@ class FontFamilySpec:
     western_scale_y : float
         Additional Y-axis scale applied to western glyphs after the uniform
         'A'-advance normalisation.  Defaults to 1.0.
-    western_offset_y : float
-        Vertical offset applied to western glyphs, expressed as a ratio
-        relative to the font UPM.  Defaults to 0.0.
     subfamilies : list[SubfamilySpec]
         Ordered list of per-subfamily settings.
     """
@@ -242,5 +234,4 @@ class FontFamilySpec:
     remove_hints: bool
     western_scale_x: float
     western_scale_y: float
-    western_offset_y: float
     subfamilies: list[SubfamilySpec]

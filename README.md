@@ -192,7 +192,6 @@ levels:
 | `flog_symbols` | string | `""` | Path to the Flog Symbols font (e.g. `FlogSymbols.ttf`). Empty string disables. |
 | `western_scale_x` | float | `1.0` | Additional horizontal scale applied to western glyphs after advance-width normalisation. |
 | `western_scale_y` | float | `1.0` | Additional vertical scale applied to western glyphs after advance-width normalisation. |
-| `western_offset_y` | float (UPM ratio) | `0.0` | Additional vertical offset applied to western glyphs, as a ratio of the font UPM. Positive values shift upward. |
 | `[[double_width]]` | array of tables | `[]` | Rules for widening glyphs to a fullwidth cell. |
 
 All of these keys can be overridden inside any ``[[families]]`` block.
@@ -289,7 +288,6 @@ block to override the default for that family:
 |---|---|---|---|
 | `western_scale_x` | float | `1.0` | Additional horizontal scale applied to western glyphs after advance-width normalisation. Use values below `1.0` to narrow the western text. |
 | `western_scale_y` | float | `1.0` | Additional vertical scale applied to western glyphs after advance-width normalisation. |
-| `western_offset_y` | float (UPM ratio) | `0.0` | Additional vertical offset applied to western glyphs after scaling, as a ratio of the font UPM (1.0 = one full em). Positive values shift western glyphs upward. |
 | `nerd_font` | string | `""` | Path to the Nerd Font symbols font. |
 | `nerd_font_mono` | bool | `false` | Nerd Font scaling mode (mono vs non-mono). |
 | `flog_symbols` | string | `""` | Path to the Flog Symbols font. |

@@ -64,7 +64,6 @@ _COMMON_KEYS = frozenset({
     "nerd_font_mono",
     "western_scale_x",
     "western_scale_y",
-    "western_offset_y",
 })
 
 
@@ -139,7 +138,6 @@ def _build_family_spec(name: str, merged: dict) -> FontFamilySpec:
         remove_hints=bool(merged.get("remove_hints", False)),
         western_scale_x=float(merged.get("western_scale_x", 1.0)),
         western_scale_y=float(merged.get("western_scale_y", 1.0)),
-        western_offset_y=float(merged.get("western_offset_y", 0.0)),
         subfamilies=subfamilies,
     )
 
