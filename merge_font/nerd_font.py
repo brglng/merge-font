@@ -108,6 +108,15 @@ SYM_ATTR_TRIGRAPH: dict = {
                 'params': {'overlap': -0.10, 'careful': True}}
 }
 
+SYM_ATTR_FONTA: dict = {
+    'default': {'align': 'c', 'valign': 'c', 'stretch': 'pa', 'params': {}},
+
+    # Keep the sort arrows on their original vertical baseline.
+    0xf0dc: {'align': 'c', 'valign': '', 'stretch': 'pa', 'params': {}},
+    0xf0dd: {'align': 'c', 'valign': '', 'stretch': 'pa', 'params': {}},
+    0xf0de: {'align': 'c', 'valign': '', 'stretch': 'pa', 'params': {}},
+}
+
 SYM_ATTR_BRAILLE: dict = {
     # No scaling; glyphs are already generated at the correct size.
     'default': {'align': '', 'valign': '', 'stretch': '', 'params': {'careful': False}}
@@ -166,6 +175,81 @@ PROGR_SCALE_LIST: dict = {
     ],
 }
 
+CODI_SCALE_LIST: dict = {
+    'ShiftMode': 'xy',
+    'ScaleGroups': [
+        [0xea61, 0xeb13],                         # lightbulb
+        range(0xeab4, 0xeab7 + 1),                # chevrons
+        [0xea7d, *range(0xea99, 0xeaa1 + 1), 0xebcb],  # arrows
+        [0xeaa2, 0xeb9a, 0xec08, 0xec09],         # bells
+        range(0xead4, 0xead6 + 1),                # dot and arrow
+        [0xeb43, 0xec0b, 0xec0c],                 # request changes
+        range(0xeb6e, 0xeb71 + 1),                # triangles
+        [*range(0xeb89, 0xeb8b + 1), 0xec07],     # smallish dots
+        range(0xebd5, 0xebd7 + 1),                # compasses
+    ],
+}
+
+FONTA_SCALE_LIST: dict = {
+    'ShiftMode': '',
+    'ScaleGroups': [
+        [0xf005, 0xf006, 0xf089],                 # star, star empty, half star
+        range(0xf026, 0xf028 + 1),                # volume off/down/up
+        range(0xf02b, 0xf02c + 1),                # tag, tags
+        range(0xf031, 0xf035 + 1),                # font et al
+        range(0xf044, 0xf046 + 1),                # edit, share, check
+        range(0xf048, 0xf052 + 1),                # multimedia buttons
+        range(0xf060, 0xf063 + 1),                # arrows
+        [0xf053, 0xf054, 0xf077, 0xf078],         # chevrons
+        range(0xf07d, 0xf07e + 1),                # resize
+        range(0xf0a4, 0xf0a7 + 1),                # pointing hands
+        [0xf0d7, 0xf0d8, 0xf0d9, 0xf0da, 0xf0dc, 0xf0dd, 0xf0de],
+        range(0xf100, 0xf107 + 1),                # angle
+        range(0xf130, 0xf131 + 1),                # mic
+        range(0xf141, 0xf142 + 1),                # ellipsis
+        range(0xf153, 0xf15a + 1),                # currencies
+        range(0xf175, 0xf178 + 1),                # long arrows
+        range(0xf182, 0xf183 + 1),                # gender
+        range(0xf221, 0xf22d + 1),                # gender symbols
+        range(0xf255, 0xf25b + 1),                # hand symbols
+    ],
+}
+
+OCTI_SCALE_LIST: dict = {
+    'ShiftMode': '',
+    'ScaleGroups': [
+        [*range(0xf43d, 0xf440 + 1), 0xf419, 0xf430, 0xf44a, 0xf451, 0xf471, 0xf48c],
+        [0xf4e7, 0xf444, 0xf45a, 0xf45b, 0xf4aa, 0xf452, 0xf453, 0xf4a9, 0xf51d,
+         0xf478, 0xf4a2, 0xf4a3, 0xf4a4, 0xf4ca, 0xf481, 0xf492],
+        [0xf49c, 0xf49f, 0xf4de],
+        range(0xf4ef, 0xf4f2 + 1),
+        [0xf47b, 0xf4a1, 0xf4d6, 0xf533],
+    ],
+}
+
+WEATH_SCALE_LIST: dict = {
+    'ShiftMode': '',
+    'ScaleGroups': [
+        [0xe33c, 0xe342, 0xe345],
+        [0xe343, 0xe344, 0xe348, 0xe34b, 0xe34c, 0xe34d, 0xe357, 0xe358, 0xe387, 0xe388],
+        range(0xe353, 0xe355 + 1),
+        [*range(0xe359, 0xe361 + 1), 0xe3b1],
+        range(0xe389, 0xe394 + 1),
+        range(0xe395, 0xe3b0 + 1),
+        range(0xe3b7, 0xe3c3 + 1),
+        [0xe36e, 0xe370],
+        [0xe351, 0xe352, 0xe3c9, 0xe3ca, 0xe372],
+        [0xe349, 0xe356, 0xe371, *range(0xe373, 0xe37c + 1), 0xe38a],
+        [
+            *range(0xe300, 0xe341 + 1),
+            *range(0xe364, 0xe36d + 1),
+            *range(0xe37d, 0xe383 + 1),
+            *range(0xe385, 0xe386 + 1),
+            *range(0xe3b2, 0xe3b6 + 1),
+        ],
+    ],
+}
+
 
 # ---------------------------------------------------------------------------
 # Patch-rule table  (priority-ordered; first match wins)
@@ -185,6 +269,19 @@ _PATCH_RULES: list[tuple] = [
     (set(range(0x276c, 0x2771 + 1)), SYM_ATTR_HEAVYBRACKETS, HEAVY_SCALE_LIST),
     (set(range(0x2500, 0x259f + 1)), SYM_ATTR_BOX,           BOX_SCALE_LIST),
     (set(range(0xee00, 0xee0b + 1)), SYM_ATTR_PROGRESS,      PROGR_SCALE_LIST),
+    (set(range(0xea60, 0xec1e + 1)), SYM_ATTR_DEFAULT,       CODI_SCALE_LIST),
+    (set(range(0xed00, 0xf2ff + 1)), SYM_ATTR_FONTA,         FONTA_SCALE_LIST),
+    (
+        {
+            *range(0xf400, 0xf505 + 1),
+            *range(0xf4a9, 0xf533 + 1),
+            0x2665,
+            0x26a1,
+        },
+        SYM_ATTR_DEFAULT,
+        OCTI_SCALE_LIST,
+    ),
+    (set(range(0xe300, 0xe3eb + 1)), SYM_ATTR_DEFAULT,       WEATH_SCALE_LIST),
     (_POWERLINE_CODEPOINTS,          SYM_ATTR_POWERLINE,      None),
     ({0x2630},                       SYM_ATTR_TRIGRAPH,       None),
     (set(range(0x2800, 0x28ff + 1)), SYM_ATTR_BRAILLE,        None),
@@ -283,6 +380,77 @@ def _scale_bbox(bbox: dict, scale_x: float, scale_y: float) -> dict:
     }
 
 
+def _half_gap(gap: int, top: bool) -> int:
+    """Split a line gap the same way font-patcher does."""
+    if gap <= 0:
+        return 0
+    gap_top = int(gap / 2)
+    gap_bottom = gap - gap_top
+    return gap_top if top else gap_bottom
+
+
+def _btb_metrics(font: TTFont) -> tuple[int, int, int, int]:
+    """Return HHEA, TYPO, WIN baseline-to-baseline metrics and WIN gap."""
+    os2 = font["OS/2"]
+    hhea = font["hhea"]
+    hhea_height = int(hhea.ascent - hhea.descent)
+    typo_height = int(os2.sTypoAscender - os2.sTypoDescender)
+    win_height = int(os2.usWinAscent + os2.usWinDescent)
+    win_gap = max(0, int(hhea.lineGap - win_height + hhea_height))
+    return (
+        hhea_height + int(hhea.lineGap),
+        typo_height + int(os2.sTypoLineGap),
+        win_height + win_gap,
+        win_gap,
+    )
+
+
+def _get_sourcefont_dimensions(font: TTFont, mono: bool) -> dict:
+    """Compute cell dimensions using font-patcher's metric fallback order."""
+    from merge_font import get_typical_advance
+
+    os2 = font["OS/2"]
+    hhea = font["hhea"]
+    hhea_btb, typo_btb, win_btb, win_gap = _btb_metrics(font)
+    use_typo = bool(getattr(os2, "fsSelection", 0) & (1 << 7))
+
+    our_btb = typo_btb if use_typo else win_btb
+    if our_btb == hhea_btb or (our_btb and abs(our_btb - hhea_btb) / our_btb < 0.03):
+        metrics = "TYPO" if use_typo else "WIN"
+    else:
+        alternate_btb = win_btb if use_typo else typo_btb
+        if alternate_btb == hhea_btb:
+            metrics = "WIN" if use_typo else "TYPO"
+        else:
+            metrics = "WIN"
+
+    if metrics == "HHEA":
+        ymin = float(hhea.descent - _half_gap(int(hhea.lineGap), False))
+        ymax = float(hhea.ascent + _half_gap(int(hhea.lineGap), True))
+    elif metrics == "TYPO":
+        ymin = float(os2.sTypoDescender - _half_gap(int(os2.sTypoLineGap), False))
+        ymax = float(os2.sTypoAscender + _half_gap(int(os2.sTypoLineGap), True))
+    else:
+        ymin = float(-os2.usWinDescent - _half_gap(win_gap, False))
+        ymax = float(os2.usWinAscent + _half_gap(win_gap, True))
+
+    height = ymax - ymin
+    cap_height = float(
+        os2.sCapHeight
+        if hasattr(os2, "sCapHeight") and os2.sCapHeight > 0
+        else height
+    )
+    return {
+        "width": float(get_typical_advance(font, ord("A"))),
+        "height": height,
+        "iconheight": (cap_height * 2.0 + height) / 3.0 if mono else height,
+        "xmin": 0.0,
+        "ymin": ymin,
+        "ymax": ymax,
+        "ypadding": 0.0,
+    }
+
+
 def _get_target_width(stretch: str, mono: bool) -> int:
     """Return 1 or 2 cells for the given stretch mode and mono flag.
 
@@ -329,8 +497,9 @@ def _get_scale_factors(
         target_width += font_dim["width"] * overlap
     sx = target_width / w
 
+    font_dim["ypadding"] = ypadding
     target_height = font_dim["height"] if "^" in stretch else font_dim["iconheight"]
-    target_height *= 1.0 - ypadding
+    target_height *= 1.0 - font_dim["ypadding"]
     if overlap:
         target_height *= 1.0 + min(0.01, overlap)   # never aggressive vertical overlap
     sy = target_height / h
@@ -397,7 +566,6 @@ def merge_nerd_font(
         FontTables,
         copy_glyph_into,
         get_glyph_dependencies,
-        get_typical_advance,
         copy_hinting_tables,
         glyph_xmin,
         recalc_glyph_bounds,
@@ -409,6 +577,7 @@ def merge_nerd_font(
     # Snapshot codepoints that already exist in the base font BEFORE merging
     # (used by the 'careful' flag to skip existing glyphs).
     original_base_codepoints: set[int] = set(base_font.getBestCmap())
+    preserve_existing_box = all(cp in original_base_codepoints for cp in range(0x2500, 0x259f + 1))
 
     base_cmap = base_font.getBestCmap()
     symbol_cmap = symbol_font.getBestCmap()
@@ -420,26 +589,9 @@ def merge_nerd_font(
     )
 
     # ── Font cell dimensions ──────────────────────────────────────────────
-    # Mirrors font-patcher get_sourcefont_dimensions().
-    base_os2 = base_font["OS/2"]
-    line_height = float(base_os2.sTypoAscender - base_os2.sTypoDescender)
-    cap_height = float(
-        base_os2.sCapHeight
-        if hasattr(base_os2, "sCapHeight") and base_os2.sCapHeight > 0
-        else line_height
-    )
-    # iconheight: (capHeight*2 + lineHeight)/3 in mono mode (prevents overly
-    # tall icons); full lineHeight in non-mono mode.
-    icon_height = (cap_height * 2.0 + line_height) / 3.0 if mono else line_height
-    cell_width = float(get_typical_advance(base_font, ord("A")))
-    font_dim = {
-        "width":      cell_width,
-        "height":     line_height,
-        "iconheight": icon_height,
-        "xmin":       0.0,
-        "ymin":       float(base_os2.sTypoDescender),
-        "ymax":       float(base_os2.sTypoAscender),
-    }
+    # Mirrors font-patcher get_sourcefont_dimensions() metric selection.
+    font_dim = _get_sourcefont_dimensions(base_font, mono)
+    cell_width = font_dim["width"]
 
     upm_scale = base_font["head"].unitsPerEm / float(symbol_font["head"].unitsPerEm)
 
@@ -495,7 +647,8 @@ def merge_nerd_font(
 
     # ── Phase 3: scale, align, and set advance for each symbol ───────────
     for codepoint, sym_glyph_name in symbol_cmap.items():
-        base_cmap[codepoint] = sym_glyph_name
+        if preserve_existing_box and 0x2500 <= codepoint <= 0x259f:
+            continue
 
         if sym_glyph_name not in base_tables.glyf:
             continue
@@ -505,6 +658,13 @@ def merge_nerd_font(
 
         stretch: str = sym_attr["stretch"]
 
+        # Careful: skip codepoints already present in the base font.
+        careful = sym_attr["params"].get("careful", False)
+        if careful and codepoint in original_base_codepoints:
+            continue
+
+        base_cmap[codepoint] = sym_glyph_name
+
         # Braille: no additional scaling; advance still needs to be set.
         if not stretch:
             if sym_glyph_name in base_tables.hmtx.metrics:
@@ -512,11 +672,6 @@ def merge_nerd_font(
                 base_tables.hmtx.metrics[sym_glyph_name] = (
                     int(round(cell_width)), lsb
                 )
-            continue
-
-        # Careful: skip codepoints already present in the base font.
-        careful = sym_attr["params"].get("careful", False)
-        if careful and codepoint in original_base_codepoints:
             continue
 
         # Individual glyph bbox (pre-scaling, UPM-normalised).
@@ -558,9 +713,33 @@ def merge_nerd_font(
             if actual_xy > xy_ratio_max:
                 sx = sx * xy_ratio_max / actual_xy
 
+        if sx != 1.0 or sy != 1.0:
+            # font-patcher scales X a hair smaller to avoid integer rounding
+            # from producing glyphs that overflow their target cell.
+            sx *= base_font["head"].unitsPerEm / (base_font["head"].unitsPerEm + 1.0)
+
         # ── Apply scale to glyph outline ──────────────────────────────────
         glyph = base_tables.glyf[sym_glyph_name]
         GlyphTransformer.scale(glyph, sx, sy)
+        recalc_glyph_bounds(base_tables.glyf, sym_glyph_name)
+
+        if mono:
+            # font-patcher retries from the original glyph if rounding made a
+            # single-width glyph too wide.  Here the glyph is already copied, so
+            # apply the equivalent additional X shrink in place.
+            destmaxsize = font_dim["width"] * max(1.0, 1.0 + (overlap or 0.0))
+            for increaser in range(3):
+                post_bbox = _get_glyph_bbox(base_tables.glyf, sym_glyph_name)
+                if post_bbox is None:
+                    break
+                post_width = post_bbox[2] - post_bbox[0]
+                sizeerror = post_width - destmaxsize
+                if sizeerror <= 0:
+                    break
+                correction = destmaxsize / (post_width + increaser)
+                GlyphTransformer.scale(glyph, correction, 1.0)
+                sx *= correction
+                recalc_glyph_bounds(base_tables.glyf, sym_glyph_name)
 
         # ── Alignment dimensions (post-scaling) ───────────────────────────
         if group_bbox is not None:
@@ -651,5 +830,11 @@ def merge_nerd_font(
                     target_advance = int(round(align_dim["width"]))
                 if overlap:
                     target_advance -= int(round(font_dim["width"] * overlap))
+
+            if not overlap and not mono:
+                recalc_glyph_bounds(base_tables.glyf, sym_glyph_name)
+                glyph_xmax = getattr(base_tables.glyf[sym_glyph_name], "xMax", None)
+                if glyph_xmax is not None:
+                    target_advance = max(target_advance, int(round(glyph_xmax)))
 
             base_tables.hmtx.metrics[sym_glyph_name] = (target_advance, new_lsb)
