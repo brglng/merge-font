@@ -399,6 +399,8 @@ def merge_nerd_font(
         get_glyph_dependencies,
         get_typical_advance,
         copy_hinting_tables,
+        glyph_xmin,
+        recalc_glyph_bounds,
     )
 
     if copy_hints:
@@ -565,17 +567,17 @@ def merge_nerd_font(
             align_dim = _scale_bbox(group_bbox, sx, sy)
             if align_dim["advance"] is None:
                 # Non-uniform group advances: use individual glyph h-bounds.
-                align_dim["xmin"] = i_xmin * sx
-                align_dim["xmax"] = i_xmax * sx
-                align_dim["width"] = ind_dim["width"] * sx
+                align_dim["xmin"] = float(round(i_xmin * sx))
+                align_dim["xmax"] = float(round(i_xmax * sx))
+                align_dim["width"] = align_dim["xmax"] - align_dim["xmin"]
         else:
             align_dim = {
-                "xmin":    i_xmin   * sx,
-                "ymin":    i_ymin   * sy,
-                "xmax":    i_xmax   * sx,
-                "ymax":    i_ymax   * sy,
-                "width":   ind_dim["width"]   * sx,
-                "height":  ind_dim["height"]  * sy,
+                "xmin":    float(round(i_xmin * sx)),
+                "ymin":    float(round(i_ymin * sy)),
+                "xmax":    float(round(i_xmax * sx)),
+                "ymax":    float(round(i_ymax * sy)),
+                "width":   float(round(i_xmax * sx) - round(i_xmin * sx)),
+                "height":  float(round(i_ymax * sy) - round(i_ymin * sy)),
                 "advance": (ind_dim["advance"] * sx
                             if ind_dim["advance"] is not None else None),
             }
@@ -632,10 +634,11 @@ def merge_nerd_font(
             GlyphTransformer.shift_horizontal(glyph, shift_x)
         if shift_y:
             GlyphTransformer.shift_vertical(glyph, shift_y)
+        recalc_glyph_bounds(base_tables.glyf, sym_glyph_name)
 
         # ── Set advance width and LSB ──────────────────────────────────────
         if sym_glyph_name in base_tables.hmtx.metrics:
-            new_lsb = int(round(i_xmin * sx)) + shift_x
+            new_lsb = glyph_xmin(base_tables.glyf, sym_glyph_name, int(round(i_xmin * sx)) + shift_x)
             if not overlap:
                 new_lsb = max(0, new_lsb)
 

@@ -222,6 +222,23 @@ class FontTables:
         )
 
 
+def recalc_glyph_bounds(glyf_table: Any, glyph_name: str) -> None:
+    """Refresh cached bounds for *glyph_name* when supported by fontTools."""
+    glyph = glyf_table[glyph_name]
+    if hasattr(glyph, "recalcBounds"):
+        glyph.recalcBounds(glyf_table)
+
+
+def glyph_xmin(glyf_table: Any, glyph_name: str, fallback: int) -> int:
+    """Return the glyph's current xMin, falling back when bounds are absent."""
+    recalc_glyph_bounds(glyf_table, glyph_name)
+    glyph = glyf_table[glyph_name]
+    xmin = getattr(glyph, "xMin", None)
+    if xmin is None:
+        return fallback
+    return int(round(xmin))
+
+
 def scale_glyph_metrics(
     tables: FontTables,
     glyph_name: str,
@@ -259,7 +276,8 @@ def stretch_glyph(
         return
     scale_x = target_advance / float(adv)
     GlyphTransformer.scale(tables.glyf[glyph_name], scale_x, 1.0)
-    tables.hmtx.metrics[glyph_name] = (target_advance, int(round(lsb * scale_x)))
+    new_lsb = glyph_xmin(tables.glyf, glyph_name, int(round(lsb * scale_x)))
+    tables.hmtx.metrics[glyph_name] = (target_advance, new_lsb)
 
 
 def shift_glyph(
@@ -274,7 +292,8 @@ def shift_glyph(
     """
     GlyphTransformer.shift_horizontal(tables.glyf[glyph_name], shift_x)
     _, lsb = tables.hmtx.metrics[glyph_name]
-    tables.hmtx.metrics[glyph_name] = (target_advance, lsb + shift_x)
+    new_lsb = glyph_xmin(tables.glyf, glyph_name, lsb + shift_x)
+    tables.hmtx.metrics[glyph_name] = (target_advance, new_lsb)
 
 
 def copy_glyph_into(
@@ -307,21 +326,21 @@ def copy_glyph_into(
         if apply_y_offset:
             GlyphTransformer.shift_vertical(copied, y_offset)
         dst_tables.glyf[dst_name] = copied
+        recalc_glyph_bounds(dst_tables.glyf, dst_name)
         if dst_name not in dst_font.glyphOrder:
             dst_font.glyphOrder.append(dst_name)
 
     if src_name in src_tables.hmtx.metrics:
         adv, lsb = src_tables.hmtx.metrics[src_name]
+        scaled_lsb = int(round(lsb * scale_x))
         dst_tables.hmtx.metrics[dst_name] = (
             int(round(adv * scale_x)),
-            int(round(lsb * scale_x)),
+            glyph_xmin(dst_tables.glyf, dst_name, scaled_lsb) if dst_name in dst_tables.glyf else scaled_lsb,
         )
 
     if dst_tables.vmtx and src_tables.vmtx and src_name in src_tables.vmtx.metrics:
         v_adv, tsb = src_tables.vmtx.metrics[src_name]
-        scaled_tsb = int(round(tsb * scale_y))
-        if apply_y_offset:
-            scaled_tsb -= y_offset
+        scaled_tsb = int(round(tsb * scale_y - (y_offset if apply_y_offset else 0)))
         dst_tables.vmtx.metrics[dst_name] = (
             int(round(v_adv * scale_y)),
             scaled_tsb,
@@ -737,8 +756,7 @@ def adjust_cjk_glyph_widths(
         if codepoint in _stretch_pad:
             if cjk_scale != 1.0:
                 GlyphTransformer.scale(base_tables.glyf[new_glyph_name], 1.0, cjk_scale)
-                adv, lsb = base_tables.hmtx.metrics[new_glyph_name]
-                base_tables.hmtx.metrics[new_glyph_name] = (adv, lsb)
+                recalc_glyph_bounds(base_tables.glyf, new_glyph_name)
                 if base_tables.vmtx and new_glyph_name in base_tables.vmtx.metrics:
                     v_adv, tsb = base_tables.vmtx.metrics[new_glyph_name]
                     base_tables.vmtx.metrics[new_glyph_name] = (
@@ -766,9 +784,14 @@ def adjust_cjk_glyph_widths(
         shift_x = int(round((target_adv - effective_adv) / 2.0))
         _, lsb = base_tables.hmtx.metrics[new_glyph_name]
         GlyphTransformer.shift_horizontal(base_tables.glyf[new_glyph_name], shift_x)
+        new_lsb = glyph_xmin(
+            base_tables.glyf,
+            new_glyph_name,
+            int(round(lsb * cjk_scale)) + shift_x,
+        )
         base_tables.hmtx.metrics[new_glyph_name] = (
             target_adv,
-            int(round(lsb * cjk_scale)) + shift_x,
+            new_lsb,
         )
 
 
@@ -819,6 +842,10 @@ def merge_cjk_glyphs(
         for glyph_name in list(cjk_tables.glyf.keys()):
             if glyph_name.startswith("cjk_"):
                 GlyphTransformer.shift_vertical(cjk_tables.glyf[glyph_name], y_offset)
+                recalc_glyph_bounds(cjk_tables.glyf, glyph_name)
+                if cjk_tables.vmtx and glyph_name in cjk_tables.vmtx.metrics:
+                    v_adv, tsb = cjk_tables.vmtx.metrics[glyph_name]
+                    cjk_tables.vmtx.metrics[glyph_name] = (v_adv, tsb - y_offset)
 
 
 # ---------------------------------------------------------------------------
