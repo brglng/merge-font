@@ -1494,3 +1494,28 @@ def process_family(family: FontFamilySpec) -> None:
             nerd_font.close()
         if flog_symbols_font:
             flog_symbols_font.close()
+
+
+# Public configuration loader export used by ``python -m merge_font`` and the
+# ``merge-font`` console script.
+from merge_font.config import load_families  # noqa: E402
+from merge_font.nerd_font import merge_nerd_font  # noqa: E402
+
+
+def main() -> None:
+    """Parse arguments, load TOML configuration, and run all merging tasks."""
+    import argparse
+
+    parser = argparse.ArgumentParser(
+        description="Merge western and CJK fonts according to a TOML configuration.",
+    )
+    parser.add_argument(
+        "config",
+        metavar="FILE",
+        help="Path to the TOML configuration file",
+    )
+    args = parser.parse_args()
+
+    families = load_families(args.config)
+    for family in families:
+        process_family(family)
