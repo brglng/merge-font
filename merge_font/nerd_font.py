@@ -19,6 +19,11 @@ from typing import Any
 
 from fontTools.ttLib import TTFont
 
+DIFFERENT_ADVANCES_SENTINEL = -1.0
+METRIC_MISMATCH_TOLERANCE = 0.03
+MAX_VERTICAL_OVERLAP_FACTOR = 0.01
+MAX_OVERFLOW_CORRECTION_ATTEMPTS = 3
+
 
 # ---------------------------------------------------------------------------
 # Attribute Tables  (font-patcher SYM_ATTR_* / setup_patch_set ~line 1080)
@@ -346,10 +351,10 @@ def _get_multiglyph_bbox(
         if advance_state is None:
             advance_state = -gadv          # first glyph: store negative
         elif advance_state < 0:
-            advance_state = gadv if abs(advance_state) == gadv else -1.0
+            advance_state = gadv if abs(advance_state) == gadv else DIFFERENT_ADVANCES_SENTINEL
         elif advance_state > 0:
             if advance_state != gadv:
-                advance_state = -1.0       # different advances
+                advance_state = DIFFERENT_ADVANCES_SENTINEL
 
         valid += 1
 
@@ -415,7 +420,10 @@ def _get_sourcefont_dimensions(font: TTFont, mono: bool) -> dict:
     use_typo = bool(getattr(os2, "fsSelection", 0) & (1 << 7))
 
     our_btb = typo_btb if use_typo else win_btb
-    if our_btb == hhea_btb or (our_btb and abs(our_btb - hhea_btb) / our_btb < 0.03):
+    if (
+        our_btb == hhea_btb
+        or (our_btb and abs(our_btb - hhea_btb) / our_btb < METRIC_MISMATCH_TOLERANCE)
+    ):
         metrics = "TYPO" if use_typo else "WIN"
     else:
         alternate_btb = win_btb if use_typo else typo_btb
@@ -501,7 +509,7 @@ def _get_scale_factors(
     target_height = font_dim["height"] if "^" in stretch else font_dim["iconheight"]
     target_height *= 1.0 - font_dim["ypadding"]
     if overlap:
-        target_height *= 1.0 + min(0.01, overlap)   # never aggressive vertical overlap
+        target_height *= 1.0 + min(MAX_VERTICAL_OVERLAP_FACTOR, overlap)
     sy = target_height / h
 
     if "pa" in stretch:
@@ -714,8 +722,8 @@ def merge_nerd_font(
                 sx = sx * xy_ratio_max / actual_xy
 
         if sx != 1.0 or sy != 1.0:
-            # font-patcher scales X a hair smaller to avoid integer rounding
-            # from producing glyphs that overflow their target cell.
+            # font-patcher uses em / (em + 1) as a tiny X shrink so integer
+            # coordinate rounding does not push glyphs over their target cell.
             sx *= base_font["head"].unitsPerEm / (base_font["head"].unitsPerEm + 1.0)
 
         # ── Apply scale to glyph outline ──────────────────────────────────
@@ -728,7 +736,7 @@ def merge_nerd_font(
             # single-width glyph too wide.  Here the glyph is already copied, so
             # apply the equivalent additional X shrink in place.
             destmaxsize = font_dim["width"] * max(1.0, 1.0 + (overlap or 0.0))
-            for increaser in range(3):
+            for increaser in range(MAX_OVERFLOW_CORRECTION_ATTEMPTS):
                 post_bbox = _get_glyph_bbox(base_tables.glyf, sym_glyph_name)
                 if post_bbox is None:
                     break
