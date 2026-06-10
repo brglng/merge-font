@@ -249,7 +249,7 @@ def _combined_dimensions(
     xmax = max(box[2] for box in boxes)
     ymax = max(box[3] for box in boxes)
     shared_advance = None
-    if len(advances) == 1 and len(boxes) > 1:
+    if len(advances) == 1:
         shared_advance = float(next(iter(advances)))
 
     return GlyphDimensions(
@@ -278,8 +278,10 @@ def _scale_factors(
     icon_height: float,
     em: int,
 ) -> tuple[float, float]:
-    if dim.width == 0 or dim.height == 0:
+    if dim.width <= 0 or dim.height <= 0:
         return (1.0, 1.0)
+    glyph_width = max(dim.width, 1.0)
+    glyph_height = max(dim.height, 1.0)
 
     target_width = cell_width * _target_width_cells(attr.stretch, mono)
     if attr.overlap:
@@ -289,8 +291,8 @@ def _scale_factors(
     if attr.overlap:
         target_height *= 1.0 + min(MAX_VERTICAL_OVERLAP, attr.overlap)
 
-    scale_x = target_width / dim.width
-    scale_y = target_height / dim.height
+    scale_x = target_width / glyph_width
+    scale_y = target_height / glyph_height
     if "pa" in attr.stretch:
         scale_x = min(scale_x, scale_y)
         if not mono and "!" not in attr.stretch and not attr.overlap:
@@ -303,7 +305,7 @@ def _scale_factors(
             scale_y = 1.0
 
     if attr.xy_ratio:
-        xy_ratio = dim.width * scale_x / (dim.height * scale_y)
+        xy_ratio = glyph_width * scale_x / (glyph_height * scale_y)
         if xy_ratio > attr.xy_ratio:
             scale_x *= attr.xy_ratio / xy_ratio
 
