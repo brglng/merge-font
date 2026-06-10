@@ -107,8 +107,8 @@ def _offset_values(values: Iterable[int], offset: int) -> frozenset[int]:
 
 
 WEATHER_OFFSET = 0xE300 - 0xF000
-OCTICONS_OFFSET_1 = 0xF400 - 0xF000
-OCTICONS_OFFSET_2 = 0xF4A9 - 0xF27C
+OCTICONS_OFFSET_FIRST = 0xF400 - 0xF000
+OCTICONS_OFFSET_SECOND = 0xF4A9 - 0xF27C
 
 
 UNCONDITIONAL_RANGES = (
@@ -230,8 +230,8 @@ SCALE_GROUPS: tuple[ScaleGroup, ...] = (
     ScaleGroup(frozenset((*range(0xEB89, 0xEB8B + 1), 0xEC07)), "xy"),
     ScaleGroup(_range_set(0xEBD5, 0xEBD7), "xy"),
     ScaleGroup(frozenset((
-        *_offset_range(0xF03D, 0xF040, OCTICONS_OFFSET_1),
-        *_offset_values((0xF019, 0xF030, 0xF04A, 0xF051, 0xF071, 0xF08C), OCTICONS_OFFSET_1),
+        *_offset_range(0xF03D, 0xF040, OCTICONS_OFFSET_FIRST),
+        *_offset_values((0xF019, 0xF030, 0xF04A, 0xF051, 0xF071, 0xF08C), OCTICONS_OFFSET_FIRST),
     ))),
     ScaleGroup(frozenset((
         *_offset_values((
@@ -249,14 +249,14 @@ SCALE_GROUPS: tuple[ScaleGroup, ...] = (
             0xF0CA,
             0xF081,
             0xF092,
-        ), OCTICONS_OFFSET_1),
-        *_offset_values((0xF296, 0xF2F0), OCTICONS_OFFSET_2),
+        ), OCTICONS_OFFSET_FIRST),
+        *_offset_values((0xF296, 0xF2F0), OCTICONS_OFFSET_SECOND),
     ))),
-    ScaleGroup(_offset_values((0xF09C, 0xF09F, 0xF0DE), OCTICONS_OFFSET_1)),
-    ScaleGroup(_offset_range(0xF2C2, 0xF2C5, OCTICONS_OFFSET_2)),
+    ScaleGroup(_offset_values((0xF09C, 0xF09F, 0xF0DE), OCTICONS_OFFSET_FIRST)),
+    ScaleGroup(_offset_range(0xF2C2, 0xF2C5, OCTICONS_OFFSET_SECOND)),
     ScaleGroup(frozenset((
-        *_offset_values((0xF07B, 0xF0A1, 0xF0D6), OCTICONS_OFFSET_1),
-        0xF306 + OCTICONS_OFFSET_2,
+        *_offset_values((0xF07B, 0xF0A1, 0xF0D6), OCTICONS_OFFSET_FIRST),
+        0xF306 + OCTICONS_OFFSET_SECOND,
     ))),
     ScaleGroup(_offset_values((0xF03C, 0xF042, 0xF045), WEATHER_OFFSET)),
     ScaleGroup(_offset_values((
@@ -568,8 +568,8 @@ def merge_nerd_font(
 
     group_data: dict[int, tuple[float, GlyphDimensions | None]] = {}
     for group in SCALE_GROUPS:
-        # Scale groups can include helper glyphs that are not copied; measure them
-        # in the symbol font first, then convert the dimensions to the base UPM.
+        # Scale groups can include helper glyphs that are not copied. Use the
+        # full symbol cmap for measurement, then convert dimensions to base UPM.
         dim = _combined_dimensions(sym_tables, group.codepoints, symbol_cmap)
         if dim is None:
             continue
@@ -589,7 +589,7 @@ def merge_nerd_font(
         )[0]
         shared_dim = scaled_dim if group.shift_mode else None
         for codepoint in group.codepoints:
-            # font-patcher uses the first matching ScaleGroups entry.
+            # Keep the first matching ScaleGroups entry, matching font-patcher.
             if codepoint not in group_data:
                 group_data[codepoint] = (scale, shared_dim)
 
