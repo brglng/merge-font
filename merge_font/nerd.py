@@ -6,8 +6,8 @@ special handling.
 """
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-from typing import Any, Iterable, Literal
+from dataclasses import dataclass, field, replace
+from typing import Any, Iterable, Literal, cast
 
 from fontTools.ttLib import TTFont
 
@@ -96,6 +96,53 @@ PROGRESS_SET = _range_set(0xEE00, 0xEE0B)
 BRAILLE_SET = _range_set(0x2800, 0x28FF)
 
 
+def _offset_range(start: int, end: int, offset: int) -> frozenset[int]:
+    """Offset an upstream inclusive start/end range to final codepoints."""
+    return frozenset(range(start + offset, end + offset + 1))
+
+
+def _offset_values(values: Iterable[int], offset: int) -> frozenset[int]:
+    """Return explicit codepoints with an upstream-to-final offset applied."""
+    return frozenset(value + offset for value in values)
+
+
+WEATHER_OFFSET = 0xE300 - 0xF000  # source F000-F0EB maps down to final E300-E3EB
+OCTICONS_OFFSET_FIRST = 0xF400 - 0xF000
+OCTICONS_OFFSET_SECOND = 0xF4A9 - 0xF27C
+
+
+UNCONDITIONAL_RANGES = (
+    (0xE5FA, 0xE6FF),  # Seti-UI + Custom
+    (0x276C, 0x2771),  # Heavy Angle Brackets
+    (0xEE00, 0xEE0B),  # Progress Indicators
+    (0xE700, 0xE8EF),  # Devicons
+    (0xE0A0, 0xE0A2),  # Powerline Symbols
+    (0xE0B0, 0xE0B3),
+    (0xE0A3, 0xE0A3),  # Powerline Extra Symbols
+    (0xE0B4, 0xE0C8),
+    (0xE0CA, 0xE0CA),
+    (0xE0CC, 0xE0D7),
+    (0x2630, 0x2630),
+    (0xE000, 0xE00A),  # Pomicons
+    (0xED00, 0xF2FF),  # Font Awesome
+    (0xE200, 0xE2A9),  # Font Awesome Extension
+    (0x23FB, 0x23FE),  # Power Symbols
+    (0x2B58, 0x2B58),
+    (0xF0001, 0xF1AF0),  # Material Design Icons
+    (0xE300, 0xE3EB),  # Weather Icons
+    (0xF300, 0xF381),  # Font Logos
+    (0xF400, 0xF505),  # Octicons, remapped first range
+    (0x2665, 0x2665),
+    (0x26A1, 0x26A1),
+    (0xF4A9, 0xF533),  # Octicons, remapped second range
+    (0xEA60, 0xEC1E),  # Codicons
+)
+UNCONDITIONAL_SET = _ranges_set(UNCONDITIONAL_RANGES)
+# Careful glyphs are still in the official ranges, but upstream marks them as
+# non-overwriting; _should_merge_codepoint applies that check before range allow.
+CAREFUL_SET = HEAVY_ANGLE_SET | PROGRESS_SET | frozenset({0x2630})
+
+
 POWERLINE_ATTRIBUTES: dict[int, SymbolAttributes] = {
     0xE0B0: SymbolAttributes("l", "c", "^xy", overlap=0.06, xy_ratio=0.7),
     0xE0B1: SymbolAttributes("l", "c", "^xy", xy_ratio=0.7),
@@ -182,6 +229,69 @@ SCALE_GROUPS: tuple[ScaleGroup, ...] = (
     ScaleGroup(_range_set(0xEB6E, 0xEB71), "xy"),
     ScaleGroup(frozenset((*range(0xEB89, 0xEB8B + 1), 0xEC07)), "xy"),
     ScaleGroup(_range_set(0xEBD5, 0xEBD7), "xy"),
+    ScaleGroup(frozenset((
+        *_offset_range(0xF03D, 0xF040, OCTICONS_OFFSET_FIRST),
+        *_offset_values((0xF019, 0xF030, 0xF04A, 0xF051, 0xF071, 0xF08C), OCTICONS_OFFSET_FIRST),
+    ))),
+    ScaleGroup(frozenset((
+        *_offset_values((
+            0xF0E7,
+            0xF044,
+            0xF05A,
+            0xF05B,
+            0xF0AA,
+            0xF052,
+            0xF053,
+            0xF078,
+            0xF0A2,
+            0xF0A3,
+            0xF0A4,
+            0xF0CA,
+            0xF081,
+            0xF092,
+        ), OCTICONS_OFFSET_FIRST),
+        *_offset_values((0xF296, 0xF2F0), OCTICONS_OFFSET_SECOND),
+    ))),
+    ScaleGroup(_offset_values((0xF09C, 0xF09F, 0xF0DE), OCTICONS_OFFSET_FIRST)),
+    ScaleGroup(_offset_range(0xF2C2, 0xF2C5, OCTICONS_OFFSET_SECOND)),
+    ScaleGroup(frozenset((
+        *_offset_values((0xF07B, 0xF0A1, 0xF0D6), OCTICONS_OFFSET_FIRST),
+        0xF306 + OCTICONS_OFFSET_SECOND,
+    ))),
+    ScaleGroup(_offset_values((0xF03C, 0xF042, 0xF045), WEATHER_OFFSET)),
+    ScaleGroup(_offset_values((
+        0xF043,
+        0xF044,
+        0xF048,
+        0xF04B,
+        0xF04C,
+        0xF04D,
+        0xF057,
+        0xF058,
+        0xF087,
+        0xF088,
+    ), WEATHER_OFFSET)),
+    ScaleGroup(_offset_range(0xF053, 0xF055, WEATHER_OFFSET)),
+    ScaleGroup(frozenset((
+        *_offset_range(0xF059, 0xF061, WEATHER_OFFSET),
+        0xF0B1 + WEATHER_OFFSET,
+    ))),
+    ScaleGroup(_offset_range(0xF089, 0xF094, WEATHER_OFFSET)),
+    ScaleGroup(_offset_range(0xF095, 0xF0B0, WEATHER_OFFSET)),
+    ScaleGroup(_offset_range(0xF0B7, 0xF0C3, WEATHER_OFFSET)),
+    ScaleGroup(_offset_values((0xF06E, 0xF070), WEATHER_OFFSET)),
+    ScaleGroup(_offset_values((0xF051, 0xF052, 0xF0C9, 0xF0CA, 0xF072), WEATHER_OFFSET)),
+    ScaleGroup(frozenset((
+        *_offset_values((0xF049, 0xF056, 0xF071, 0xF08A), WEATHER_OFFSET),
+        *_offset_range(0xF073, 0xF07C, WEATHER_OFFSET),
+    ))),
+    ScaleGroup(frozenset((
+        *_offset_range(0xF000, 0xF041, WEATHER_OFFSET),
+        *_offset_range(0xF064, 0xF06D, WEATHER_OFFSET),
+        *_offset_range(0xF07D, 0xF083, WEATHER_OFFSET),
+        *_offset_range(0xF085, 0xF086, WEATHER_OFFSET),
+        *_offset_range(0xF0B2, 0xF0B6, WEATHER_OFFSET),
+    ))),
 )
 
 
@@ -203,6 +313,36 @@ def _attributes_for(codepoint: int) -> SymbolAttributes:
     if codepoint in {0xF0DC, 0xF0DD, 0xF0DE}:
         return SymbolAttributes("c", "", "pa")
     return SymbolAttributes()
+
+
+def _effective_attributes_for(codepoint: int, font_extrawide: bool) -> SymbolAttributes:
+    """Return upstream attributes, adjusted for extrawide font behavior."""
+    attr = _attributes_for(codepoint)
+    if font_extrawide and "2" in attr.stretch:
+        # Upstream strips the "2 cells" modifier for very wide fonts.
+        return replace(attr, stretch=cast(StretchMode, attr.stretch.removesuffix("2")))
+    return attr
+
+
+def _should_merge_codepoint(
+    codepoint: int,
+    original_base_codepoints: frozenset[int],
+    mono: bool,
+    box_enabled: bool,
+    braille_enabled: bool,
+) -> bool:
+    """Return whether upstream font-patcher would copy this final codepoint.
+
+    Careful glyphs do not replace existing base glyphs; box drawing and Braille
+    follow their conditional enablement; all other glyphs use the fixed ranges.
+    """
+    if codepoint in CAREFUL_SET and codepoint in original_base_codepoints:
+        return False
+    if codepoint in BOX_DRAWING_SET:
+        return box_enabled
+    if codepoint in BRAILLE_SET:
+        return braille_enabled
+    return codepoint in UNCONDITIONAL_SET
 
 
 def _glyph_dimensions(tables: FontTables, glyph_name: str) -> GlyphDimensions | None:
@@ -368,6 +508,22 @@ def merge_nerd_font(
 
     base_cmap = base_font.getBestCmap()
     symbol_cmap = symbol_font.getBestCmap()
+    original_base_codepoints = frozenset(base_cmap)
+    # Upstream only auto-adds these complete ranges to monospace fonts, and
+    # skips them when the base font already has the full set.
+    box_enabled = mono and not BOX_DRAWING_SET.issubset(original_base_codepoints)
+    braille_enabled = mono and not BRAILLE_SET.issubset(original_base_codepoints)
+    merge_cmap = {
+        codepoint: glyph_name
+        for codepoint, glyph_name in symbol_cmap.items()
+        if _should_merge_codepoint(
+            codepoint,
+            original_base_codepoints,
+            mono,
+            box_enabled,
+            braille_enabled,
+        )
+    }
     base_tables = FontTables.from_font(base_font)
     sym_tables = FontTables(
         glyf=symbol_font["glyf"],
@@ -386,8 +542,10 @@ def merge_nerd_font(
     cell_width = float(get_typical_advance(base_font, ord("A")))
     cell_center_y = (base_os2.sTypoAscender + base_os2.sTypoDescender) / 2.0
     upm_scale = base_font["head"].unitsPerEm / float(symbol_font["head"].unitsPerEm)
+    # Same upstream 1.8 threshold: very wide/short fonts do not get 2-cell Powerline glyphs.
+    font_extrawide = line_height * 1.8 < cell_width * 2
 
-    for codepoint, sym_glyph_name in symbol_cmap.items():
+    for codepoint, sym_glyph_name in merge_cmap.items():
         for dep_name in get_glyph_dependencies(sym_glyph_name, sym_tables.glyf):
             if dep_name not in base_tables.glyf:
                 copy_glyph_into(
@@ -401,7 +559,7 @@ def merge_nerd_font(
                     copy_hints=copy_hints,
                 )
 
-    for codepoint, sym_glyph_name in symbol_cmap.items():
+    for codepoint, sym_glyph_name in merge_cmap.items():
         for dep_name in get_glyph_dependencies(sym_glyph_name, sym_tables.glyf):
             if dep_name in base_tables.glyf:
                 glyph = base_tables.glyf[dep_name]
@@ -410,15 +568,20 @@ def merge_nerd_font(
 
     group_data: dict[int, tuple[float, GlyphDimensions | None]] = {}
     for group in SCALE_GROUPS:
-        dim = _combined_dimensions(base_tables, group.codepoints, symbol_cmap)
+        # Scale groups can include helper glyphs that affect dimensions but are
+        # not copied. sym_tables is valid here because _combined_dimensions only
+        # reads glyf/hmtx data; scaled_dim below converts from symbol to base UPM.
+        dim = _combined_dimensions(sym_tables, group.codepoints, symbol_cmap)
         if dim is None:
             continue
-        sample_cp = next((cp for cp in group.codepoints if cp in symbol_cmap), None)
+        # Measure with the full symbol cmap, then convert dimensions to base UPM.
+        scaled_dim = dim.scaled(upm_scale, upm_scale)
+        sample_cp = next((cp for cp in group.codepoints if cp in merge_cmap), None)
         if sample_cp is None:
             continue
-        attr = _attributes_for(sample_cp)
+        attr = _effective_attributes_for(sample_cp, font_extrawide)
         scale = _scale_factors(
-            dim,
+            scaled_dim,
             attr,
             mono,
             cell_width,
@@ -426,16 +589,19 @@ def merge_nerd_font(
             icon_height,
             base_font["head"].unitsPerEm,
         )[0]
-        shared_dim = dim if group.shift_mode else None
+        shared_dim = scaled_dim if group.shift_mode else None
         for codepoint in group.codepoints:
-            group_data[codepoint] = (scale, shared_dim)
+            # SCALE_GROUPS follows upstream order; font-patcher searches groups
+            # sequentially and returns on the first match, so later overlaps lose.
+            if codepoint not in group_data:
+                group_data[codepoint] = (scale, shared_dim)
 
-    for codepoint, sym_glyph_name in symbol_cmap.items():
+    for codepoint, sym_glyph_name in merge_cmap.items():
         base_cmap[codepoint] = sym_glyph_name
         if sym_glyph_name not in base_tables.glyf:
             continue
 
-        attr = _attributes_for(codepoint)
+        attr = _effective_attributes_for(codepoint, font_extrawide)
         if codepoint in BRAILLE_SET:
             continue
 
@@ -462,14 +628,13 @@ def merge_nerd_font(
         glyph = base_tables.glyf[sym_glyph_name]
         GlyphTransformer.scale(glyph, scale_x, scale_y)
 
-        target_advance = int(round(cell_width * _target_width_cells(attr.stretch, mono)))
         scaled_align_dim = align_dim.scaled(scale_x, scale_y)
         shift_x, shift_y = _center_shifts(
             scaled_align_dim,
             attr,
             mono,
             cell_width,
-            target_advance,
+            int(round(cell_width * _target_width_cells(attr.stretch, mono))),
             cell_center_y,
         )
 
@@ -480,6 +645,16 @@ def merge_nerd_font(
 
         if sym_glyph_name in base_tables.hmtx.metrics:
             old_adv, old_lsb = base_tables.hmtx.metrics[sym_glyph_name]
+            if mono:
+                target_advance = int(round(cell_width))
+            elif scaled_align_dim.advance is not None:
+                # Non-mono output keeps the scaled native advance when available.
+                target_advance = int(round(scaled_align_dim.advance))
+            else:
+                # Mixed-advance scale groups have no representative advance; use outline width.
+                target_advance = int(round(scaled_align_dim.width))
+            if not mono and attr.overlap:
+                target_advance -= int(round(cell_width * attr.overlap))
             base_tables.hmtx.metrics[sym_glyph_name] = (
                 target_advance,
                 int(round(old_lsb * scale_x)) + shift_x,
