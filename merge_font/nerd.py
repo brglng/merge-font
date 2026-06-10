@@ -57,7 +57,7 @@ class GlyphDimensions:
     height: float
     advance: float | None = None
 
-    def scaled(self, scale_x: float, scale_y: float) -> "GlyphDimensions":
+    def scaled(self, scale_x: float, scale_y: float) -> GlyphDimensions:
         return GlyphDimensions(
             xmin=self.xmin * scale_x,
             ymin=self.ymin * scale_y,
@@ -367,7 +367,7 @@ def merge_nerd_font(
     sym_tables = FontTables(
         glyf=symbol_font["glyf"],
         hmtx=symbol_font["hmtx"],
-        vmtx=symbol_font["vmtx"] if "vmtx" in base_font and "vmtx" in symbol_font else None,
+        vmtx=symbol_font["vmtx"] if "vmtx" in symbol_font and "vmtx" in base_font else None,
     )
 
     base_os2 = base_font["OS/2"]
