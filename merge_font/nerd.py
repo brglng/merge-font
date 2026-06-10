@@ -247,6 +247,10 @@ def _combined_dimensions(
     ymin = min(box[1] for box in boxes)
     xmax = max(box[2] for box in boxes)
     ymax = max(box[3] for box in boxes)
+    shared_advance = None
+    if len(advances) == 1 and len(boxes) > 1:
+        shared_advance = float(next(iter(advances)))
+
     return GlyphDimensions(
         xmin=xmin,
         ymin=ymin,
@@ -254,7 +258,7 @@ def _combined_dimensions(
         ymax=ymax,
         width=float(max(1, xmax - xmin)),
         height=float(max(1, ymax - ymin)),
-        advance=float(next(iter(advances))) if len(advances) == 1 and len(boxes) > 1 else None,
+        advance=shared_advance,
     )
 
 
@@ -303,6 +307,8 @@ def _scale_factors(
             scale_x *= attr.xy_ratio / xy_ratio
 
     if scale_x != 1.0 or scale_y != 1.0:
+        # Match font-patcher's tiny X-axis shrink to avoid rounded outlines
+        # spilling past cell bounds after integer coordinate conversion.
         scale_x *= em / (em + 1)
     return (scale_x, scale_y)
 
