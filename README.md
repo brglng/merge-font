@@ -122,10 +122,10 @@ activating the environment:
 uv run merge-font config.toml
 ```
 
-Or equivalently, using the module entry point:
+Or equivalently, using the CLI module entry point:
 
 ```bash
-uv run python -m merge_font config.toml
+uv run python -m merge_font.cli config.toml
 ```
 
 Replace `config.toml` with the path to your own configuration file.

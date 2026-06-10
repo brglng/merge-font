@@ -104,10 +104,10 @@ uv sync
 uv run merge-font config.toml
 ```
 
-或者等效地，使用模組進入點：
+或者等效地，使用 CLI 模組進入點：
 
 ```bash
-uv run python -m merge_font config.toml
+uv run python -m merge_font.cli config.toml
 ```
 
 將 `config.toml` 替換為您自己的設定檔路徑。
