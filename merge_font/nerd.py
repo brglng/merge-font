@@ -509,6 +509,8 @@ def merge_nerd_font(
     base_cmap = base_font.getBestCmap()
     symbol_cmap = symbol_font.getBestCmap()
     original_base_codepoints = frozenset(base_cmap)
+    # Upstream only auto-adds these complete ranges to monospace fonts, and
+    # skips them when the base font already has the full set.
     box_enabled = mono and not BOX_DRAWING_SET.issubset(original_base_codepoints)
     braille_enabled = mono and not BRAILLE_SET.issubset(original_base_codepoints)
     merge_cmap = {
@@ -540,7 +542,7 @@ def merge_nerd_font(
     cell_width = float(get_typical_advance(base_font, ord("A")))
     cell_center_y = (base_os2.sTypoAscender + base_os2.sTypoDescender) / 2.0
     upm_scale = base_font["head"].unitsPerEm / float(symbol_font["head"].unitsPerEm)
-    # Same upstream heuristic: very wide/short fonts do not get 2-cell Powerline glyphs.
+    # Same upstream 1.8 threshold: very wide/short fonts do not get 2-cell Powerline glyphs.
     font_extrawide = line_height * 1.8 < cell_width * 2
 
     for codepoint, sym_glyph_name in merge_cmap.items():
@@ -571,13 +573,13 @@ def merge_nerd_font(
         dim = _combined_dimensions(sym_tables, group.codepoints, symbol_cmap)
         if dim is None:
             continue
-        dim = dim.scaled(upm_scale, upm_scale)
+        scaled_dim = dim.scaled(upm_scale, upm_scale)
         sample_cp = next((cp for cp in group.codepoints if cp in merge_cmap), None)
         if sample_cp is None:
             continue
         attr = _effective_attributes_for(sample_cp, font_extrawide)
         scale = _scale_factors(
-            dim,
+            scaled_dim,
             attr,
             mono,
             cell_width,
@@ -585,7 +587,7 @@ def merge_nerd_font(
             icon_height,
             base_font["head"].unitsPerEm,
         )[0]
-        shared_dim = dim if group.shift_mode else None
+        shared_dim = scaled_dim if group.shift_mode else None
         for codepoint in group.codepoints:
             # font-patcher uses the first matching ScaleGroups entry.
             if codepoint not in group_data:
@@ -643,8 +645,10 @@ def merge_nerd_font(
             if mono:
                 target_advance = int(round(cell_width))
             elif scaled_align_dim.advance is not None:
+                # Non-mono output keeps the scaled native advance when available.
                 target_advance = int(round(scaled_align_dim.advance))
             else:
+                # Combined scale groups with mixed advances fall back to outline width.
                 target_advance = int(round(scaled_align_dim.width))
             if not mono and attr.overlap:
                 target_advance -= int(round(cell_width * attr.overlap))
