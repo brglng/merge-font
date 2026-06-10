@@ -65,6 +65,7 @@ class GlyphDimensions:
             ymax=self.ymax * scale_y,
             width=self.width * scale_x,
             height=self.height * scale_y,
+            # Horizontal advances are X-axis metrics; vertical metrics stay in vmtx.
             advance=None if self.advance is None else self.advance * scale_x,
         )
 
@@ -217,8 +218,8 @@ def _glyph_dimensions(tables: FontTables, glyph_name: str) -> GlyphDimensions | 
         ymin=float(ymin),
         xmax=float(xmax),
         ymax=float(ymax),
-        width=float(max(1, xmax - xmin)),
-        height=float(max(1, ymax - ymin)),
+        width=float(xmax - xmin),
+        height=float(ymax - ymin),
         advance=advance,
     )
 
@@ -257,8 +258,8 @@ def _combined_dimensions(
         ymin=ymin,
         xmax=xmax,
         ymax=ymax,
-        width=float(max(1, xmax - xmin)),
-        height=float(max(1, ymax - ymin)),
+        width=float(xmax - xmin),
+        height=float(ymax - ymin),
         advance=shared_advance,
     )
 
@@ -331,10 +332,11 @@ def _center_shifts(
     shift_x = 0
     if attr.align:
         shift_x = -dim.xmin
-        align_width: float = cell_width
-        use_glyph_advance = not mono and "pa" in attr.stretch and dim.advance is not None
-        if use_glyph_advance:
-            align_width = dim.advance
+        align_width = (
+            dim.advance
+            if not mono and "pa" in attr.stretch and dim.advance is not None
+            else cell_width
+        )
         if attr.align == "c":
             shift_x += int(round((align_width - dim.width) / 2.0))
         elif attr.align == "r":
