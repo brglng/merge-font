@@ -97,10 +97,12 @@ BRAILLE_SET = _range_set(0x2800, 0x28FF)
 
 
 def _offset_range(start: int, end: int, offset: int) -> frozenset[int]:
+    """Return an inclusive range with an upstream-to-final codepoint offset."""
     return frozenset(range(start + offset, end + offset + 1))
 
 
 def _offset_values(values: Iterable[int], offset: int) -> frozenset[int]:
+    """Return explicit codepoints with an upstream-to-final offset applied."""
     return frozenset(value + offset for value in values)
 
 
@@ -314,6 +316,7 @@ def _attributes_for(codepoint: int) -> SymbolAttributes:
 
 
 def _effective_attributes_for(codepoint: int, font_extrawide: bool) -> SymbolAttributes:
+    """Return upstream attributes, adjusted for extrawide font behavior."""
     attr = _attributes_for(codepoint)
     if font_extrawide and "2" in attr.stretch:
         # Upstream strips the "2 cells" modifier for very wide fonts.
@@ -328,6 +331,11 @@ def _should_merge_codepoint(
     box_enabled: bool,
     braille_enabled: bool,
 ) -> bool:
+    """Return whether upstream font-patcher would copy this final codepoint.
+
+    Careful glyphs do not replace existing base glyphs; box drawing and Braille
+    follow their conditional enablement; all other glyphs use the fixed ranges.
+    """
     if codepoint in CAREFUL_SET and codepoint in original_base_codepoints:
         return False
     if codepoint in BOX_DRAWING_SET:
