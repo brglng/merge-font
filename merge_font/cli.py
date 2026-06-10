@@ -1,7 +1,8 @@
 """Command-line entry point for the ``merge-font`` CLI."""
 import argparse
 
-from merge_font import load_families, process_family
+from merge_font import process_family
+from merge_font.config import load_families
 
 
 def main() -> None:

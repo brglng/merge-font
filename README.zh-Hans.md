@@ -104,10 +104,10 @@ uv sync
 uv run merge-font config.toml
 ```
 
-或者等效地，使用模块入口点：
+或者等效地，使用 CLI 模块入口点：
 
 ```bash
-uv run python -m merge_font config.toml
+uv run python -m merge_font.cli config.toml
 ```
 
 将 `config.toml` 替换为您自己的配置文件路径。
