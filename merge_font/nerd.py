@@ -320,7 +320,7 @@ def _effective_attributes_for(codepoint: int, font_extrawide: bool) -> SymbolAtt
     attr = _attributes_for(codepoint)
     if font_extrawide and "2" in attr.stretch:
         # Upstream strips the "2 cells" modifier for very wide fonts.
-        return replace(attr, stretch=cast(StretchMode, attr.stretch.replace("2", "")))
+        return replace(attr, stretch=cast(StretchMode, attr.stretch.removesuffix("2")))
     return attr
 
 
@@ -568,11 +568,11 @@ def merge_nerd_font(
 
     group_data: dict[int, tuple[float, GlyphDimensions | None]] = {}
     for group in SCALE_GROUPS:
-        # Scale groups can include helper glyphs that are not copied. Use the
-        # full symbol cmap for measurement, then convert dimensions to base UPM.
+        # Scale groups can include helper glyphs that are not copied.
         dim = _combined_dimensions(sym_tables, group.codepoints, symbol_cmap)
         if dim is None:
             continue
+        # Measure with the full symbol cmap, then convert dimensions to base UPM.
         scaled_dim = dim.scaled(upm_scale, upm_scale)
         sample_cp = next((cp for cp in group.codepoints if cp in merge_cmap), None)
         if sample_cp is None:
@@ -589,7 +589,7 @@ def merge_nerd_font(
         )[0]
         shared_dim = scaled_dim if group.shift_mode else None
         for codepoint in group.codepoints:
-            # Keep the first matching ScaleGroups entry, matching font-patcher.
+            # SCALE_GROUPS follows upstream order; keep the first matching entry.
             if codepoint not in group_data:
                 group_data[codepoint] = (scale, shared_dim)
 
@@ -648,7 +648,7 @@ def merge_nerd_font(
                 # Non-mono output keeps the scaled native advance when available.
                 target_advance = int(round(scaled_align_dim.advance))
             else:
-                # Combined scale groups with mixed advances fall back to outline width.
+                # Mixed-advance scale groups have no representative advance; use outline width.
                 target_advance = int(round(scaled_align_dim.width))
             if not mono and attr.overlap:
                 target_advance -= int(round(cell_width * attr.overlap))
