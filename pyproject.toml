@@ -12,4 +12,4 @@ dependencies = [
 ]
 
 [project.scripts]
-merge-font = "merge_font:main"
+merge-font = "merge_font.cli:main"
