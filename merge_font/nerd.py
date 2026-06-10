@@ -7,7 +7,7 @@ special handling.
 from __future__ import annotations
 
 from dataclasses import dataclass, field, replace
-from typing import Any, Iterable, Literal
+from typing import Any, Iterable, Literal, cast
 
 from fontTools.ttLib import TTFont
 
@@ -136,6 +136,8 @@ UNCONDITIONAL_RANGES = (
     (0xEA60, 0xEC1E),  # Codicons
 )
 UNCONDITIONAL_SET = _ranges_set(UNCONDITIONAL_RANGES)
+# Careful glyphs are still in the official ranges, but upstream marks them as
+# non-overwriting; _should_merge_codepoint applies that check before range allow.
 CAREFUL_SET = HEAVY_ANGLE_SET | PROGRESS_SET | frozenset({0x2630})
 
 
@@ -314,7 +316,8 @@ def _attributes_for(codepoint: int) -> SymbolAttributes:
 def _effective_attributes_for(codepoint: int, font_extrawide: bool) -> SymbolAttributes:
     attr = _attributes_for(codepoint)
     if font_extrawide and "2" in attr.stretch:
-        return replace(attr, stretch=attr.stretch.replace("2", ""))  # type: ignore[arg-type]
+        # Upstream strips the "2 cells" modifier for very wide fonts.
+        return replace(attr, stretch=cast(StretchMode, attr.stretch.replace("2", "")))
     return attr
 
 
@@ -529,6 +532,7 @@ def merge_nerd_font(
     cell_width = float(get_typical_advance(base_font, ord("A")))
     cell_center_y = (base_os2.sTypoAscender + base_os2.sTypoDescender) / 2.0
     upm_scale = base_font["head"].unitsPerEm / float(symbol_font["head"].unitsPerEm)
+    # Same upstream heuristic: very wide/short fonts do not get 2-cell Powerline glyphs.
     font_extrawide = line_height * 1.8 < cell_width * 2
 
     for codepoint, sym_glyph_name in merge_cmap.items():
@@ -554,6 +558,8 @@ def merge_nerd_font(
 
     group_data: dict[int, tuple[float, GlyphDimensions | None]] = {}
     for group in SCALE_GROUPS:
+        # Scale groups can include helper glyphs that are not copied; measure them
+        # in the symbol font first, then convert the dimensions to the base UPM.
         dim = _combined_dimensions(sym_tables, group.codepoints, symbol_cmap)
         if dim is None:
             continue
@@ -573,6 +579,7 @@ def merge_nerd_font(
         )[0]
         shared_dim = dim if group.shift_mode else None
         for codepoint in group.codepoints:
+            # font-patcher uses the first matching ScaleGroups entry.
             if codepoint not in group_data:
                 group_data[codepoint] = (scale, shared_dim)
 
