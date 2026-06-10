@@ -97,7 +97,7 @@ BRAILLE_SET = _range_set(0x2800, 0x28FF)
 
 
 def _offset_range(start: int, end: int, offset: int) -> frozenset[int]:
-    """Return an inclusive range with an upstream-to-final codepoint offset."""
+    """Offset an upstream inclusive start/end range to final codepoints."""
     return frozenset(range(start + offset, end + offset + 1))
 
 
@@ -568,7 +568,8 @@ def merge_nerd_font(
 
     group_data: dict[int, tuple[float, GlyphDimensions | None]] = {}
     for group in SCALE_GROUPS:
-        # Scale groups can include helper glyphs that are not copied.
+        # Scale groups can include helper glyphs that affect dimensions but are
+        # not copied. Use symbol_cmap for measurement and merge_cmap for output.
         dim = _combined_dimensions(sym_tables, group.codepoints, symbol_cmap)
         if dim is None:
             continue
