@@ -329,8 +329,9 @@ def _center_shifts(
     shift_x = 0
     if attr.align:
         shift_x = -dim.xmin
-        align_width = cell_width
-        if not mono and "pa" in attr.stretch and dim.advance is not None:
+        align_width: float = cell_width
+        use_glyph_advance = not mono and "pa" in attr.stretch and dim.advance is not None
+        if use_glyph_advance:
             align_width = dim.advance
         if attr.align == "c":
             shift_x += int(round((align_width - dim.width) / 2.0))
@@ -382,7 +383,7 @@ def merge_nerd_font(
     cell_center_y = (base_os2.sTypoAscender + base_os2.sTypoDescender) / 2.0
     upm_scale = base_font["head"].unitsPerEm / float(symbol_font["head"].unitsPerEm)
 
-    for _, sym_glyph_name in symbol_cmap.items():
+    for codepoint, sym_glyph_name in symbol_cmap.items():
         for dep_name in get_glyph_dependencies(sym_glyph_name, sym_tables.glyf):
             if dep_name not in base_tables.glyf:
                 copy_glyph_into(
@@ -396,7 +397,7 @@ def merge_nerd_font(
                     copy_hints=copy_hints,
                 )
 
-    for _, sym_glyph_name in symbol_cmap.items():
+    for codepoint, sym_glyph_name in symbol_cmap.items():
         for dep_name in get_glyph_dependencies(sym_glyph_name, sym_tables.glyf):
             if dep_name in base_tables.glyf:
                 glyph = base_tables.glyf[dep_name]
