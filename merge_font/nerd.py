@@ -22,17 +22,18 @@ from merge_font import (
 )
 
 
-Stretch = Literal["", "pa", "^pa", "^pa1!", "^xy", "^xy2", "pa1!"]
-Align = Literal["", "l", "c", "r"]
+StretchMode = Literal["", "pa", "^pa", "^pa1!", "^xy", "^xy2", "pa1!"]
+AlignMode = Literal["", "l", "c", "r"]
+MAX_VERTICAL_OVERLAP = 0.01
 
 
 @dataclass(frozen=True)
 class SymbolAttributes:
     """Upstream font-patcher symbol placement attributes."""
 
-    align: Align = "c"
-    valign: Align = "c"
-    stretch: Stretch = "pa"
+    align: AlignMode = "c"
+    valign: AlignMode = "c"
+    stretch: StretchMode = "pa"
     overlap: float | None = None
     ypadding: float = 0.0
     xy_ratio: float | None = None
@@ -286,7 +287,7 @@ def _scale_factors(
     target_height = line_height if "^" in attr.stretch else icon_height
     target_height *= 1.0 - attr.ypadding
     if attr.overlap:
-        target_height *= 1.0 + min(0.01, attr.overlap)
+        target_height *= 1.0 + min(MAX_VERTICAL_OVERLAP, attr.overlap)
 
     scale_x = target_width / dim.width
     scale_y = target_height / dim.height
