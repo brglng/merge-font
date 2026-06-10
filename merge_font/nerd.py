@@ -106,7 +106,7 @@ def _offset_values(values: Iterable[int], offset: int) -> frozenset[int]:
     return frozenset(value + offset for value in values)
 
 
-WEATHER_OFFSET = 0xE300 - 0xF000
+WEATHER_OFFSET = 0xE300 - 0xF000  # source F000-F0EB maps down to final E300-E3EB
 OCTICONS_OFFSET_FIRST = 0xF400 - 0xF000
 OCTICONS_OFFSET_SECOND = 0xF4A9 - 0xF27C
 
@@ -569,7 +569,8 @@ def merge_nerd_font(
     group_data: dict[int, tuple[float, GlyphDimensions | None]] = {}
     for group in SCALE_GROUPS:
         # Scale groups can include helper glyphs that affect dimensions but are
-        # not copied. Use symbol_cmap for measurement and merge_cmap for output.
+        # not copied. sym_tables is valid here because _combined_dimensions only
+        # reads glyf/hmtx data; scaled_dim below converts from symbol to base UPM.
         dim = _combined_dimensions(sym_tables, group.codepoints, symbol_cmap)
         if dim is None:
             continue
@@ -590,7 +591,8 @@ def merge_nerd_font(
         )[0]
         shared_dim = scaled_dim if group.shift_mode else None
         for codepoint in group.codepoints:
-            # SCALE_GROUPS follows upstream order; keep the first matching entry.
+            # SCALE_GROUPS follows upstream order; font-patcher searches groups
+            # sequentially and returns on the first match, so later overlaps lose.
             if codepoint not in group_data:
                 group_data[codepoint] = (scale, shared_dim)
 
