@@ -43,6 +43,10 @@ strategy = "pad_left"
 chars    = ["\u2019", "\u201d"]   # ’ ”
 strategy = "pad_right"
 
+# [[double_width]]
+# chars    = ["·"]
+# strategy = "center"
+
 
 # ---------------------------------------------------------------------------
 # Font families
@@ -57,42 +61,42 @@ western_scale_x = 0.9
 [[families.subfamilies]]
 name            = "Light"
 western_font    = "~/Library/Fonts/MonaspaceArgon-Light.otf"
-cjk_font        = "~/Library/Fonts/LXGWBright-Light.ttf"
+cjk_font        = "~/Library/Fonts/LXGWWenKaiMono-Light.ttf"
 cjk_scale       = 1.16
 cjk_offset_y    = -0.05
 
 [[families.subfamilies]]
 name            = "Light Italic"
 western_font    = "~/Library/Fonts/MonaspaceArgon-LightItalic.otf"
-cjk_font        = "~/Library/Fonts/LXGWBright-Light.ttf"
+cjk_font        = "~/Library/Fonts/LXGWWenKaiMono-Light.ttf"
 cjk_scale       = 1.16
 cjk_offset_y    = -0.05
 
 [[families.subfamilies]]
 name            = "Regular"
 western_font    = "~/Library/Fonts/MonaspaceArgon-Regular.otf"
-cjk_font        = "~/Library/Fonts/LXGWBright-Regular.ttf"
+cjk_font        = "~/Library/Fonts/LXGWWenKaiMono-Regular.ttf"
 cjk_scale       = 1.16
 cjk_offset_y    = -0.05
 
 [[families.subfamilies]]
 name            = "Italic"
 western_font    = "~/Library/Fonts/MonaspaceArgon-Italic.otf"
-cjk_font        = "~/Library/Fonts/LXGWBright-Regular.ttf"
+cjk_font        = "~/Library/Fonts/LXGWWenKaiMono-Regular.ttf"
 cjk_scale       = 1.16
 cjk_offset_y    = -0.05
 
 [[families.subfamilies]]
 name            = "Medium"
 western_font    = "~/Library/Fonts/MonaspaceArgon-Medium.otf"
-cjk_font        = "~/Library/Fonts/LXGWBright-Medium.ttf"
+cjk_font        = "~/Library/Fonts/LXGWWenKaiMono-Medium.ttf"
 cjk_scale       = 1.16
 cjk_offset_y    = -0.05
 
 [[families.subfamilies]]
 name            = "Medium Italic"
 western_font    = "~/Library/Fonts/MonaspaceArgon-MediumItalic.otf"
-cjk_font        = "~/Library/Fonts/LXGWBright-Medium.ttf"
+cjk_font        = "~/Library/Fonts/LXGWWenKaiMono-Medium.ttf"
 cjk_scale       = 1.16
 cjk_offset_y    = -0.05
 
@@ -106,42 +110,42 @@ western_scale_x = 0.9
 [[families.subfamilies]]
 name            = "Light"
 western_font    = "~/Library/Fonts/MonaspaceArgon-Light.otf"
-cjk_font        = "~/Library/Fonts/LXGWBrightGB-Light.ttf"
+cjk_font        = "~/Library/Fonts/LXGWWenKaiMonoGB-Light.ttf"
 cjk_scale       = 1.16
 cjk_offset_y    = -0.05
 
 [[families.subfamilies]]
 name            = "Light Italic"
 western_font    = "~/Library/Fonts/MonaspaceArgon-LightItalic.otf"
-cjk_font        = "~/Library/Fonts/LXGWBrightGB-Light.ttf"
+cjk_font        = "~/Library/Fonts/LXGWWenKaiMonoGB-Light.ttf"
 cjk_scale       = 1.16
 cjk_offset_y    = -0.05
 
 [[families.subfamilies]]
 name            = "Regular"
 western_font    = "~/Library/Fonts/MonaspaceArgon-Regular.otf"
-cjk_font        = "~/Library/Fonts/LXGWBrightGB-Regular.ttf"
+cjk_font        = "~/Library/Fonts/LXGWWenKaiMonoGB-Regular.ttf"
 cjk_scale       = 1.16
 cjk_offset_y    = -0.05
 
 [[families.subfamilies]]
 name            = "Italic"
 western_font    = "~/Library/Fonts/MonaspaceArgon-Italic.otf"
-cjk_font        = "~/Library/Fonts/LXGWBrightGB-Regular.ttf"
+cjk_font        = "~/Library/Fonts/LXGWWenKaiMonoGB-Regular.ttf"
 cjk_scale       = 1.16
 cjk_offset_y    = -0.05
 
 [[families.subfamilies]]
 name            = "Medium"
 western_font    = "~/Library/Fonts/MonaspaceArgon-Medium.otf"
-cjk_font        = "~/Library/Fonts/LXGWBrightGB-Medium.ttf"
+cjk_font        = "~/Library/Fonts/LXGWWenKaiMonoGB-Medium.ttf"
 cjk_scale       = 1.16
 cjk_offset_y    = -0.05
 
 [[families.subfamilies]]
 name            = "Medium Italic"
 western_font    = "~/Library/Fonts/MonaspaceArgon-MediumItalic.otf"
-cjk_font        = "~/Library/Fonts/LXGWBrightGB-Medium.ttf"
+cjk_font        = "~/Library/Fonts/LXGWWenKaiMonoGB-Medium.ttf"
 cjk_scale       = 1.16
 cjk_offset_y    = -0.05
 
@@ -155,42 +159,42 @@ western_scale_x = 0.9
 [[families.subfamilies]]
 name            = "Light"
 western_font    = "~/Library/Fonts/MonaspaceArgon-Light.otf"
-cjk_font        = "~/Library/Fonts/LXGWBrightTC-Light.ttf"
+cjk_font        = "~/Library/Fonts/LXGWWenKaiMonoTC-Light.ttf"
 cjk_scale       = 1.16
 cjk_offset_y    = -0.05
 
 [[families.subfamilies]]
 name            = "Light Italic"
 western_font    = "~/Library/Fonts/MonaspaceArgon-LightItalic.otf"
-cjk_font        = "~/Library/Fonts/LXGWBrightTC-Light.ttf"
+cjk_font        = "~/Library/Fonts/LXGWWenKaiMonoTC-Light.ttf"
 cjk_scale       = 1.16
 cjk_offset_y    = -0.05
 
 [[families.subfamilies]]
 name            = "Regular"
 western_font    = "~/Library/Fonts/MonaspaceArgon-Regular.otf"
-cjk_font        = "~/Library/Fonts/LXGWBrightTC-Regular.ttf"
+cjk_font        = "~/Library/Fonts/LXGWWenKaiMonoTC-Regular.ttf"
 cjk_scale       = 1.16
 cjk_offset_y    = -0.05
 
 [[families.subfamilies]]
 name            = "Italic"
 western_font    = "~/Library/Fonts/MonaspaceArgon-Italic.otf"
-cjk_font        = "~/Library/Fonts/LXGWBrightTC-Regular.ttf"
+cjk_font        = "~/Library/Fonts/LXGWWenKaiMonoTC-Regular.ttf"
 cjk_scale       = 1.16
 cjk_offset_y    = -0.05
 
 [[families.subfamilies]]
 name            = "Medium"
 western_font    = "~/Library/Fonts/MonaspaceArgon-Medium.otf"
-cjk_font        = "~/Library/Fonts/LXGWBrightTC-Medium.ttf"
+cjk_font        = "~/Library/Fonts/LXGWWenKaiMonoTC-Medium.ttf"
 cjk_scale       = 1.16
 cjk_offset_y    = -0.05
 
 [[families.subfamilies]]
 name            = "Medium Italic"
 western_font    = "~/Library/Fonts/MonaspaceArgon-MediumItalic.otf"
-cjk_font        = "~/Library/Fonts/LXGWBrightTC-Medium.ttf"
+cjk_font        = "~/Library/Fonts/LXGWWenKaiMonoTC-Medium.ttf"
 cjk_scale       = 1.16
 cjk_offset_y    = -0.05
 
@@ -205,12 +209,12 @@ western_scale_x = 0.9
 name            = "Light"
 western_font    = "~/Library/Fonts/MonaspaceXenon-Light.otf"
 cjk_font        = "~/Library/Fonts/NotoSerifCJKsc-Light.otf"
-cjk_scale       = 1.13
+cjk_scale       = 1.11
 
 [[families.subfamilies]]
 name            = "Light Italic"
 western_font    = "~/Library/Fonts/MonaspaceXenon-LightItalic.otf"
-cjk_font        = "~/Library/Fonts/LXGWBrightGB-Light.ttf"
+cjk_font        = "~/Library/Fonts/LXGWWenKaiMonoGB-Light.ttf"
 cjk_scale       = 1.16
 cjk_offset_y    = -0.05
 
@@ -218,12 +222,12 @@ cjk_offset_y    = -0.05
 name            = "Regular"
 western_font    = "~/Library/Fonts/MonaspaceXenon-Regular.otf"
 cjk_font        = "~/Library/Fonts/NotoSerifCJKsc-Regular.otf"
-cjk_scale       = 1.13
+cjk_scale       = 1.11
 
 [[families.subfamilies]]
 name            = "Italic"
 western_font    = "~/Library/Fonts/MonaspaceXenon-Italic.otf"
-cjk_font        = "~/Library/Fonts/LXGWBrightGB-Regular.ttf"
+cjk_font        = "~/Library/Fonts/LXGWWenKaiMonoGB-Regular.ttf"
 cjk_scale       = 1.16
 cjk_offset_y    = -0.05
 
@@ -231,12 +235,12 @@ cjk_offset_y    = -0.05
 name            = "Medium"
 western_font    = "~/Library/Fonts/MonaspaceXenon-Medium.otf"
 cjk_font        = "~/Library/Fonts/NotoSerifCJKsc-Medium.otf"
-cjk_scale       = 1.13
+cjk_scale       = 1.11
 
 [[families.subfamilies]]
 name            = "Medium Italic"
 western_font    = "~/Library/Fonts/MonaspaceXenon-MediumItalic.otf"
-cjk_font        = "~/Library/Fonts/LXGWBrightGB-Medium.ttf"
+cjk_font        = "~/Library/Fonts/LXGWWenKaiMonoGB-Medium.ttf"
 cjk_scale       = 1.16
 cjk_offset_y    = -0.05
 
@@ -251,12 +255,12 @@ western_scale_x = 0.9
 name            = "Light"
 western_font    = "~/Library/Fonts/MonaspaceXenon-Light.otf"
 cjk_font        = "~/Library/Fonts/NotoSerifCJKtc-Light.otf"
-cjk_scale       = 1.13
+cjk_scale       = 1.11
 
 [[families.subfamilies]]
 name            = "Light Italic"
 western_font    = "~/Library/Fonts/MonaspaceXenon-LightItalic.otf"
-cjk_font        = "~/Library/Fonts/LXGWBrightTC-Light.ttf"
+cjk_font        = "~/Library/Fonts/LXGWWenKaiMonoTC-Light.ttf"
 cjk_scale       = 1.16
 cjk_offset_y    = -0.05
 
@@ -264,12 +268,12 @@ cjk_offset_y    = -0.05
 name            = "Regular"
 western_font    = "~/Library/Fonts/MonaspaceXenon-Regular.otf"
 cjk_font        = "~/Library/Fonts/NotoSerifCJKtc-Regular.otf"
-cjk_scale       = 1.13
+cjk_scale       = 1.11
 
 [[families.subfamilies]]
 name            = "Italic"
 western_font    = "~/Library/Fonts/MonaspaceXenon-Italic.otf"
-cjk_font        = "~/Library/Fonts/LXGWBrightTC-Regular.ttf"
+cjk_font        = "~/Library/Fonts/LXGWWenKaiMonoTC-Regular.ttf"
 cjk_scale       = 1.16
 cjk_offset_y    = -0.05
 
@@ -277,12 +281,12 @@ cjk_offset_y    = -0.05
 name            = "Medium"
 western_font    = "~/Library/Fonts/MonaspaceXenon-Medium.otf"
 cjk_font        = "~/Library/Fonts/NotoSerifCJKtc-Medium.otf"
-cjk_scale       = 1.13
+cjk_scale       = 1.11
 
 [[families.subfamilies]]
 name            = "Medium Italic"
 western_font    = "~/Library/Fonts/MonaspaceXenon-MediumItalic.otf"
-cjk_font        = "~/Library/Fonts/LXGWBrightTC-Medium.ttf"
+cjk_font        = "~/Library/Fonts/LXGWWenKaiMonoTC-Medium.ttf"
 cjk_scale       = 1.16
 cjk_offset_y    = -0.05
 
@@ -301,7 +305,7 @@ cjk_scale    = 1.15
 [[families.subfamilies]]
 name         = "Light Italic"
 western_font = "~/Library/Fonts/JetBrainsMono-LightItalic.ttf"
-cjk_font     = "~/Library/Fonts/LXGWBrightGB-Light.ttf"
+cjk_font     = "~/Library/Fonts/LXGWWenKaiMonoGB-Light.ttf"
 cjk_scale    = 1.2
 cjk_offset_y = -0.05
 
@@ -314,7 +318,7 @@ cjk_scale    = 1.15
 [[families.subfamilies]]
 name         = "Italic"
 western_font = "~/Library/Fonts/JetBrainsMono-Italic.ttf"
-cjk_font     = "~/Library/Fonts/LXGWBrightGB-Regular.ttf"
+cjk_font     = "~/Library/Fonts/LXGWWenKaiMonoGB-Regular.ttf"
 cjk_scale    = 1.2
 cjk_offset_y = -0.05
 
@@ -327,7 +331,7 @@ cjk_scale    = 1.15
 [[families.subfamilies]]
 name         = "Medium Italic"
 western_font = "~/Library/Fonts/JetBrainsMono-MediumItalic.ttf"
-cjk_font     = "~/Library/Fonts/LXGWBrightGB-Medium.ttf"
+cjk_font     = "~/Library/Fonts/LXGWWenKaiMonoGB-Medium.ttf"
 cjk_scale    = 1.2
 cjk_offset_y = -0.05
 
@@ -346,7 +350,7 @@ cjk_scale    = 1.15
 [[families.subfamilies]]
 name         = "Light Italic"
 western_font = "~/Library/Fonts/JetBrainsMono-LightItalic.ttf"
-cjk_font     = "~/Library/Fonts/LXGWBrightTC-Light.ttf"
+cjk_font     = "~/Library/Fonts/LXGWWenKaiMonoTC-Light.ttf"
 cjk_scale    = 1.2
 cjk_offset_y = -0.05
 
@@ -359,7 +363,7 @@ cjk_scale    = 1.15
 [[families.subfamilies]]
 name         = "Italic"
 western_font = "~/Library/Fonts/JetBrainsMono-Italic.ttf"
-cjk_font     = "~/Library/Fonts/LXGWBrightTC-Regular.ttf"
+cjk_font     = "~/Library/Fonts/LXGWWenKaiMonoTC-Regular.ttf"
 cjk_scale    = 1.2
 cjk_offset_y = -0.05
 
@@ -372,6 +376,6 @@ cjk_scale    = 1.15
 [[families.subfamilies]]
 name         = "Medium Italic"
 western_font = "~/Library/Fonts/JetBrainsMono-MediumItalic.ttf"
-cjk_font     = "~/Library/Fonts/LXGWBrightTC-Medium.ttf"
+cjk_font     = "~/Library/Fonts/LXGWWenKaiMonoTC-Medium.ttf"
 cjk_scale    = 1.2
 cjk_offset_y = -0.05
