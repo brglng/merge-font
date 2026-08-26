@@ -42,31 +42,31 @@ required.
 
 ## Screenshots
 
-### Monaspace Argon + LXGW Bright
+### Monaspace Argon + LXGW WenKai Mono
 
 ![Monaspace Argon LXGW NF](images/Monaspace%20Argon%20LXGW%20NF.png)
 
-### Monaspace Argon + LXGW Bright GB
+### Monaspace Argon + LXGW WenKai Mono GB
 
 ![Monaspace Argon LXGW GB NF](images/Monaspace%20Argon%20LXGW%20GB%20NF.png)
 
-### Monaspace Argon + LXGW Bright TC
+### Monaspace Argon + LXGW WenKai Mono TC
 
 ![Monaspace Argon LXGW TC NF](images/Monaspace%20Argon%20LXGW%20TC%20NF.png)
 
-### Monaspace Xenon + Noto Serif SC (Regular) / LXGW Bright GB (Italic)
+### Monaspace Xenon + Noto Serif SC (Regular) / LXGW WenKai Mono GB (Italic)
 
 ![Monaspace Xenon Noto LXGW SC NF](images/Monaspace%20Xenon%20Noto%20LXGW%20SC%20NF.png)
 
-### Monaspace Xenon + Noto Serif TC (Regular) / LXGW Bright TC (Italic)
+### Monaspace Xenon + Noto Serif TC (Regular) / LXGW WenKai Mono TC (Italic)
 
 ![Monaspace Xenon Noto LXGW TC NF](images/Monaspace%20Xenon%20Noto%20LXGW%20TC%20NF.png)
 
-### JetBrains Mono + Noto Sans SC (Regular) / LXGW Bright GB (Italic)
+### JetBrains Mono + Noto Sans SC (Regular) / LXGW WenKai Mono GB (Italic)
 
 ![JetBrains Noto LXGW SC NF](images/JetBrains%20Noto%20LXGW%20SC%20NF.png)
 
-### JetBrains Mono + Noto Sans TC (Regular) / LXGW Bright TC (Italic)
+### JetBrains Mono + Noto Sans TC (Regular) / LXGW WenKai Mono TC (Italic)
 
 ![JetBrains Noto LXGW TC NF](images/JetBrains%20Noto%20LXGW%20TC%20NF.png)
 

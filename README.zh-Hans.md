@@ -26,31 +26,31 @@
 
 ## 截图
 
-### Monaspace Argon + LXGW Bright
+### Monaspace Argon + 霞鹜文楷 Mono
 
 ![Monaspace Argon LXGW NF](images/Monaspace%20Argon%20LXGW%20NF.png)
 
-### Monaspace Argon + LXGW Bright GB
+### Monaspace Argon + 霞鹜文楷 Mono GB
 
 ![Monaspace Argon LXGW GB NF](images/Monaspace%20Argon%20LXGW%20GB%20NF.png)
 
-### Monaspace Argon + LXGW Bright TC
+### Monaspace Argon + 霞鹜文楷 Mono TC
 
 ![Monaspace Argon LXGW TC NF](images/Monaspace%20Argon%20LXGW%20TC%20NF.png)
 
-### Monaspace Xenon + Noto Serif SC（常规体）/ LXGW Bright GB（斜体）
+### Monaspace Xenon + Noto Serif SC（常规体）/ 霞鹜文楷 Mono GB（斜体）
 
 ![Monaspace Xenon Noto LXGW SC NF](images/Monaspace%20Xenon%20Noto%20LXGW%20SC%20NF.png)
 
-### Monaspace Xenon + Noto Serif TC（常规体）/ LXGW Bright TC（斜体）
+### Monaspace Xenon + Noto Serif TC（常规体）/ 霞鹜文楷 Mono TC（斜体）
 
 ![Monaspace Xenon Noto LXGW TC NF](images/Monaspace%20Xenon%20Noto%20LXGW%20TC%20NF.png)
 
-### JetBrains Mono + Noto Sans SC（常规体）/ LXGW Bright GB（斜体）
+### JetBrains Mono + Noto Sans SC（常规体）/ 霞鹜文楷 Mono GB（斜体）
 
 ![JetBrains Noto LXGW SC NF](images/JetBrains%20Noto%20LXGW%20SC%20NF.png)
 
-### JetBrains Mono + Noto Sans TC（常规体）/ LXGW Bright TC（斜体）
+### JetBrains Mono + Noto Sans TC（常规体）/ 霞鹜文楷 Mono TC（斜体）
 
 ![JetBrains Noto LXGW TC NF](images/JetBrains%20Noto%20LXGW%20TC%20NF.png)
 
